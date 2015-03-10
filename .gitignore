@@ -10,3 +10,18 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# Eclipse
+.classpath
+.project
+.settings/
+META-INF/
+
+#intelliJ
+*.iws
+*.ipr
+.idea
+*.iml
+build/
+
+target
