@@ -63,7 +63,7 @@ public class QueryParserTest
 			QueryAtomType.PROPERTY_VALUE, 
 			new QueryArgument(QueryArgumentType.VAR, "p"),
 			new QueryArgument(QueryArgumentType.URI, "http://xmlns.com/foaf/0.1/name"),
-			new QueryArgument(QueryArgumentType.LITERAL, "foo \" bar")
+			new QueryArgument(QueryArgumentType.LITERAL, "\"foo \" bar\"^^http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral")
 		));
 		
 		assertEquals(query.getType(), QueryType.SELECT);
@@ -114,7 +114,7 @@ public class QueryParserTest
 			QueryAtomType.PROPERTY_VALUE, 
 			new QueryArgument(QueryArgumentType.VAR, "p"),
 			new QueryArgument(QueryArgumentType.URI, "http://xmlns.com/foaf/0.1/name"),
-			new QueryArgument(QueryArgumentType.LITERAL, "foo \" bar")
+			new QueryArgument(QueryArgumentType.LITERAL, "\"foo \" bar\"^^http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral")
 		));
 		
 		assertEquals(query.getType(), QueryType.SELECT_DISTINCT);

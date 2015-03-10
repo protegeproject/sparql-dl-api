@@ -74,9 +74,19 @@ public class QueryArgument
 	 * @param value
 	 * @return
 	 */
-	public static QueryArgument newLiteral(String value)
+	public static QueryArgument newLiteral(String value, String datatype, String lang)
 	{
-		return new QueryArgument(QueryArgumentType.LITERAL, value);
+        StringBuilder sb = new StringBuilder();
+        sb.append("\"");
+        sb.append(value);
+        if(!lang.isEmpty()) {
+            sb.append("@");
+            sb.append(lang);
+        }
+        sb.append("\"^^");
+        sb.append(datatype);
+        sb.append("");
+        return new QueryArgument(QueryArgumentType.LITERAL, sb.toString());
 	}
 	
 	/**

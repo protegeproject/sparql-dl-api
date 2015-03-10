@@ -99,7 +99,7 @@ public class QueryEngineImpl extends QueryEngine
 				}
 			}
 			
-			throw new QueryEngineException("Query contains an unbound result argument " + arg + ".");
+//			throw new QueryEngineException("Query contains an unbound result argument " + arg + ".");
 		}
 		
 		Queue<QueryResultImpl> results = new LinkedList<QueryResultImpl>();
@@ -754,7 +754,7 @@ public class QueryEngineImpl extends QueryEngine
 					Set<OWLLiteral> candidates = reasoner.getDataPropertyValues(ind0, dp1);
 					for(OWLLiteral c : candidates) {
 						new_binding = binding.clone();
-						new_binding.set(arg2, QueryArgument.newLiteral(c.getLiteral()));
+                        new_binding.set(arg2, QueryArgument.newLiteral(c.getLiteral(), c.getDatatype().getIRI().toString(), c.getLang()));
 						if(eval(query, group.bind(new_binding), result, new_binding)) {
 							ret = true;
 						}
@@ -810,6 +810,19 @@ public class QueryEngineImpl extends QueryEngine
 				}
 			}
 			break;
+        case ANNOTATION_PROPERTY:
+                arg0 = args.get(0);
+                if(arg0.isVar()) {
+                    Set<OWLAnnotationProperty> candidates = getAnnotationProperties();
+                    for(OWLAnnotationProperty c :candidates) {
+                        new_binding = binding.clone();
+                        new_binding.set(arg0, QueryArgument.newURI(c.getIRI()));
+                        if(eval(query, group.bind(new_binding), result, new_binding)) {
+                            ret = true;
+                        }
+                    }
+                }
+                break;
 		case FUNCTIONAL:
 			arg0 = args.get(0);
 			if(arg0.isVar()) {
@@ -1237,7 +1250,7 @@ public class QueryEngineImpl extends QueryEngine
 					Set<OWLLiteral> candidates = reasoner.getDataPropertyValues(ind0, dp1);
 					for(OWLLiteral c : candidates) {
 						new_binding = binding.clone();
-						new_binding.set(arg2, QueryArgument.newLiteral(c.getLiteral()));
+						new_binding.set(arg2, QueryArgument.newLiteral(c.getLiteral(), c.getDatatype().getIRI().toString(), c.getLang()));
 						if(eval(query, group.bind(new_binding), result, new_binding)) {
 							ret = true;
 						}
@@ -1278,7 +1291,7 @@ public class QueryEngineImpl extends QueryEngine
 						else if(a.getValue() instanceof OWLLiteral) {
 							OWLLiteral l = (OWLLiteral)a.getValue();
 							new_binding = binding.clone();
-							new_binding.set(arg2, QueryArgument.newLiteral(l.getLiteral()));
+							new_binding.set(arg2, QueryArgument.newLiteral(l.getLiteral(), l.getDatatype().getIRI().toString(), l.getLang()));
 							if(eval(query, group.bind(new_binding), result, new_binding)) {
 								ret = true;
 							}
@@ -1654,6 +1667,15 @@ public class QueryEngineImpl extends QueryEngine
 				throw new QueryEngineException("Given entity in atom DataProperty() is not a data property.");
 			}
 			return true;
+        case ANNOTATION_PROPERTY:
+            arg0 = args.get(0);
+            if(!arg0.isURI() && !arg0.isVar()) {
+                throw new QueryEngineException("Expected URI of variable in atom AnnotationProperty().");
+            }
+            if(arg0.isURI() && !isDeclaredAnnotationProperty(arg0)) {
+                throw new QueryEngineException("Given entity in atom AnnotationProperty() is not an annotation property");
+            }
+            return true;
 		case PROPERTY:
 			arg0 = args.get(0);
 			if(!arg0.isURI() && !arg0.isVar()) {
@@ -1899,9 +1921,9 @@ public class QueryEngineImpl extends QueryEngine
 				for(OWLAnnotation a : annotations) {
 					if(a.getValue() instanceof OWLLiteral) {
 						OWLLiteral l = (OWLLiteral)a.getValue();
-						if(l.getLiteral().equals(arg2.getValue())) {
+//						if(l.equals()) {
 							return true;
-						}
+//						}
 					}
 				}
 			}
@@ -1916,6 +1938,8 @@ public class QueryEngineImpl extends QueryEngine
 			return isDeclaredObjectProperty(args.get(0));
 		case DATA_PROPERTY:
 			return isDeclaredDataProperty(args.get(0));
+        case ANNOTATION_PROPERTY:
+            return isDeclaredAnnotationProperty(args.get(0));
 		default:
 			throw new QueryEngineException("Unsupported or unknown atom type.");
 		}
@@ -1946,6 +1970,7 @@ public class QueryEngineImpl extends QueryEngine
 		case PROPERTY:
 		case OBJECT_PROPERTY:
 		case DATA_PROPERTY:
+		case ANNOTATION_PROPERTY:
 		case INVERSE_OF:
 		case REFLEXIVE:
 		case IRREFLEXIVE:

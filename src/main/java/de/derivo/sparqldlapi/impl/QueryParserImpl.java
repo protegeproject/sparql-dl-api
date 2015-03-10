@@ -19,6 +19,7 @@ import de.derivo.sparqldlapi.exceptions.QueryParserException;
 import de.derivo.sparqldlapi.impl.QueryImpl;
 import de.derivo.sparqldlapi.types.QueryAtomType;
 import de.derivo.sparqldlapi.types.QueryType;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 /**
  * Concrete implementation of the QueryParser interface.
@@ -510,7 +511,7 @@ public class QueryParserImpl implements QueryParser
 	
 	private void appendLiteral(String s) 
 	{
-		currentArgs.add(QueryArgument.newLiteral(s.substring(1, s.length() - 1)));
+		currentArgs.add(QueryArgument.newLiteral(s.substring(1, s.length() - 1), OWL2Datatype.RDF_PLAIN_LITERAL.getIRI().toString(), ""));
 	}
 	
 	private void appendVar(String s) 
