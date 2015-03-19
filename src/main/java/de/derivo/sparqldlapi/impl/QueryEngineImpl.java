@@ -45,11 +45,11 @@ import de.derivo.sparqldlapi.types.QueryType;
  */
 public class QueryEngineImpl extends QueryEngine
 {
-	private OWLOntologyManager manager;
+	private final OWLOntologyManager manager;
+	private final LiteralTranslator literalTranslator;
 	private OWLReasoner reasoner;
 	private OWLDataFactory factory;
 	private boolean strictMode;
-
 	public QueryEngineImpl(OWLOntologyManager manager, OWLReasoner reasoner)
 	{
 		this(manager, reasoner, false);
@@ -65,6 +65,7 @@ public class QueryEngineImpl extends QueryEngine
 	public QueryEngineImpl(OWLOntologyManager manager, OWLReasoner reasoner, boolean strictMode)
 	{
 		this.manager = manager;
+		literalTranslator = new LiteralTranslator(manager.getOWLDataFactory());
 		this.reasoner = reasoner;
 		this.factory = manager.getOWLDataFactory();
 		this.strictMode = strictMode;
@@ -754,7 +755,7 @@ public class QueryEngineImpl extends QueryEngine
 					Set<OWLLiteral> candidates = reasoner.getDataPropertyValues(ind0, dp1);
 					for(OWLLiteral c : candidates) {
 						new_binding = binding.clone();
-                        new_binding.set(arg2, QueryArgument.newLiteral(c.getLiteral(), c.getDatatype().getIRI().toString(), c.getLang()));
+                        new_binding.set(arg2, literalTranslator.toQueryArgument(c));
 						if(eval(query, group.bind(new_binding), result, new_binding)) {
 							ret = true;
 						}
@@ -1250,7 +1251,7 @@ public class QueryEngineImpl extends QueryEngine
 					Set<OWLLiteral> candidates = reasoner.getDataPropertyValues(ind0, dp1);
 					for(OWLLiteral c : candidates) {
 						new_binding = binding.clone();
-						new_binding.set(arg2, QueryArgument.newLiteral(c.getLiteral(), c.getDatatype().getIRI().toString(), c.getLang()));
+						new_binding.set(arg2, literalTranslator.toQueryArgument(c));
 						if(eval(query, group.bind(new_binding), result, new_binding)) {
 							ret = true;
 						}
@@ -1291,7 +1292,7 @@ public class QueryEngineImpl extends QueryEngine
 						else if(a.getValue() instanceof OWLLiteral) {
 							OWLLiteral l = (OWLLiteral)a.getValue();
 							new_binding = binding.clone();
-							new_binding.set(arg2, QueryArgument.newLiteral(l.getLiteral(), l.getDatatype().getIRI().toString(), l.getLang()));
+							new_binding.set(arg2, literalTranslator.toQueryArgument(l));
 							if(eval(query, group.bind(new_binding), result, new_binding)) {
 								ret = true;
 							}
@@ -2039,7 +2040,7 @@ public class QueryEngineImpl extends QueryEngine
 	
 	private OWLLiteral asLiteral(QueryArgument arg)
 	{
-		return manager.getOWLDataFactory().getOWLLiteral(arg.getValue());
+		return literalTranslator.toOWLLiteral(arg);
 	}
 	
 	private OWLAnnotationProperty asAnnotationProperty(QueryArgument arg)

@@ -4,9 +4,11 @@
 
 package de.derivo.sparqldlapi;
 
+import de.derivo.sparqldlapi.impl.LiteralTranslator;
 import org.semanticweb.owlapi.model.IRI;
 
 import de.derivo.sparqldlapi.types.QueryArgumentType;
+import org.semanticweb.owlapi.model.OWLLiteral;
 
 /**
  * This class represents a query argument (e.g. an URI or a variable).
@@ -71,23 +73,14 @@ public class QueryArgument
 	/**
 	 * Factory method to create a QueryArgument instance with type LITERAL by string.
 	 * 
-	 * @param value
 	 * @return
 	 */
-	public static QueryArgument newLiteral(String value, String datatype, String lang)
+//	public static QueryArgument newLiteral(String value, String datatype, String lang)
+	public static QueryArgument newLiteral(OWLLiteral literal, LiteralTranslator translator)
 	{
-        StringBuilder sb = new StringBuilder();
-        sb.append("\"");
-        sb.append(value);
-        if(!lang.isEmpty()) {
-            sb.append("@");
-            sb.append(lang);
-        }
-        sb.append("\"^^");
-        sb.append(datatype);
-        sb.append("");
-        return new QueryArgument(QueryArgumentType.LITERAL, sb.toString());
+        return translator.toQueryArgument(literal);
 	}
+
 	
 	/**
 	 * Get the value of the query argument.
