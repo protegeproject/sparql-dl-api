@@ -12,6 +12,8 @@ import de.derivo.sparqldlapi.QueryAtom;
 import de.derivo.sparqldlapi.QueryAtomGroup;
 import de.derivo.sparqldlapi.QueryBinding;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Concrete implementation of the abstract Query class.
  * 
@@ -19,11 +21,10 @@ import de.derivo.sparqldlapi.QueryBinding;
  */
 public class QueryAtomGroupImpl implements QueryAtomGroup
 {
-	private List<QueryAtom> atoms;
+	private final List<QueryAtom> atoms = new LinkedList<QueryAtom>();
 	
 	public QueryAtomGroupImpl()
 	{
-		atoms = new LinkedList<QueryAtom>();
 	}
 	
 	/**
@@ -34,7 +35,7 @@ public class QueryAtomGroupImpl implements QueryAtomGroup
 	 */
 	public void addAtom(QueryAtom atom)
 	{
-		atoms.add(atom);
+		atoms.add(checkNotNull(atom));
 	}
 	
 	/**
@@ -45,7 +46,7 @@ public class QueryAtomGroupImpl implements QueryAtomGroup
 	 */
 	public boolean removeAtom(QueryAtom atom)
 	{
-		return atoms.remove(atom);
+		return atoms.remove(checkNotNull(atom));
 	}
 	
 	/**
