@@ -18,7 +18,7 @@ public enum QueryAtomType {
     FUNCTIONAL("Functional"), INVERSE_FUNCTIONAL("InverseFunctional"),
     TRANSITIVE("Transitive"), SYMMETRIC("Symmetric"), IRREFLEXIVE("Irreflexive"), REFLEXIVE("Reflexive"),
     SAME_AS("SameAs"), DISJOINT_WITH("DisjointWith"), DIFFERENT_FROM("DifferentFrom"),
-    COMPLEMENT_OF("ComplementOf"), ANNOTATION("Annotation"), DOMAIN("Domain"),
+    COMPLEMENT_OF("ComplementOf"), ANNOTATION("Annotation"), DOMAIN("Domain"), RANGE("Range"),
 
     /* class/property-hierarchy extension */
     STRICT_SUB_CLASS_OF("StrictSubClassOf"), DIRECT_SUB_CLASS_OF("DirectSubClassOf"),

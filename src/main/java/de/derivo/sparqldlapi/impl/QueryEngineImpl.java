@@ -569,6 +569,66 @@ public class QueryEngineImpl extends QueryEngine
 				}
 			}
 			break;
+		case RANGE:
+				arg0 = args.get(0);
+				arg1 = args.get(1);
+				if(arg0.isVar() && arg1.isVar() || arg0.isVar()) {
+					if(isDeclaredObjectProperty(arg0)) {
+						for(OWLObjectProperty property : getObjectProperties()) {
+							new_binding = binding.clone();
+							new_binding.set(arg0, QueryArgument.newURI(property.getIRI()));
+							if(eval(query, group.bind(new_binding), result, new_binding)) {
+								ret = true;
+							}
+						}
+					}
+					else if(isDeclaredDataProperty(arg0)) {
+						for(OWLDataProperty property : getDataProperties()) {
+							new_binding = binding.clone();
+							new_binding.set(arg0, QueryArgument.newURI(property.getIRI()));
+							if(eval(query, group.bind(new_binding), result, new_binding)) {
+								ret = true;
+							}
+						}
+					}
+					else if(isDeclaredAnnotationProperty(arg0)) {
+						for(OWLAnnotationProperty property : getAnnotationProperties()) {
+							new_binding = binding.clone();
+							new_binding.set(arg0, QueryArgument.newURI(property.getIRI()));
+							if(eval(query, group.bind(new_binding), result, new_binding)) {
+								ret = true;
+							}
+						}
+					}
+				}
+				else if(arg1.isVar()) {
+					// Looking for domains
+					if(isDeclaredObjectProperty(arg0)) {
+						OWLObjectProperty property = asObjectProperty(arg0);
+						Set<OWLClass> candidates = reasoner.getObjectPropertyRanges(property, false).getFlattened();
+						for(OWLClass c : candidates) {
+							new_binding = binding.clone();
+							new_binding.set(arg1, QueryArgument.newURI(c.getIRI()));
+							if(eval(query, group.bind(new_binding), result, new_binding)) {
+								ret = true;
+							}
+						}
+					}
+					else if(isDeclaredDataProperty(arg0)) {
+						Set<OWLDatatype> candidates = reasoner.getRootOntology().getDatatypesInSignature();
+						for(OWLDatatype c : candidates) {
+							new_binding = binding.clone();
+							new_binding.set(arg1, QueryArgument.newURI(c.getIRI()));
+							if(eval(query, group.bind(new_binding), result, new_binding)) {
+								ret = true;
+							}
+						}
+					}
+					else if(isDeclaredAnnotationProperty(arg0)) {
+						ret = false;
+					}
+				}
+				break;
 		case COMPLEMENT_OF:
 			arg0 = args.get(0);
 			arg1 = args.get(1);
@@ -1777,6 +1837,22 @@ public class QueryEngineImpl extends QueryEngine
 				throw new QueryEngineException("Given entity in second argument of atom Domain() is not a class.");
 			}
 			return true;
+		case RANGE:
+				arg0 = args.get(0);
+				arg1 = args.get(1);
+				if(!arg0.isURI() && !arg0.isVar()) {
+					throw new QueryEngineException("Expected URI or variable in first argument of atom Range().");
+				}
+				if(arg0.isURI() && !isDeclaredObjectProperty(arg0) && !isDeclaredDataProperty(arg0) && !isDeclaredAnnotationProperty(arg0)) {
+					throw new QueryEngineException("Given entity in first argument of atom Range() is not an object, data or annotation property.");
+				}
+				if(!arg1.isURI() && !arg1.isVar()) {
+					throw new QueryEngineException("Expected URI or variable in second argument of atom Range().");
+				}
+				if(arg1.isURI() && !isDeclaredClass(arg1) && !isDeclaredDatatype(arg1)) {
+					throw new QueryEngineException("Given entity in second argument of atom Range() is not a class or datatype.");
+				}
+				return true;
 		default:
 			return false;
 		}
@@ -1948,6 +2024,30 @@ public class QueryEngineImpl extends QueryEngine
 				}
 			}
 			return false;
+		case RANGE:
+			arg0 = args.get(0);
+			arg1 = args.get(1);
+			OWLObjectProperty rng_op_0 = asObjectProperty(arg0);
+			OWLDataProperty rng_dp_0 = asDataProperty(arg0);
+			OWLAnnotationProperty rng_ap_0 = asAnnotationProperty(arg0);
+			if(isDeclared(rng_op_0)) {
+				return reasoner.getObjectPropertyRanges(rng_op_0, false).containsEntity(asClass(arg1));
+			}
+			else if(isDeclared(rng_dp_0)) {
+				OWLDataPropertyRangeAxiom ax = manager.getOWLDataFactory().getOWLDataPropertyRangeAxiom(rng_dp_0, asDatatype(arg1));
+				return reasoner.isEntailed(ax);
+			}
+			else if(isDeclared(rng_ap_0)) {
+				Set<OWLAnnotationPropertyRangeAxiom> axioms = reasoner.getRootOntology().getAxioms(AxiomType.ANNOTATION_PROPERTY_RANGE, true);
+				for(OWLAnnotationPropertyRangeAxiom ax : axioms) {
+					if(ax.getProperty().equals(rng_ap_0)) {
+						if(ax.getRange().toString().equals(arg1.getValue())) {
+							return true;
+						}
+					}
+				}
+			}
+			return false;
 		case SAME_AS:
 			arg0 = args.get(0);
 			arg1 = args.get(1);
@@ -2054,6 +2154,8 @@ public class QueryEngineImpl extends QueryEngine
 		case STRICT_SUB_PROPERTY_OF:
 		case DIRECT_SUB_PROPERTY_OF:
 		case EQUIVALENT_PROPERTY:
+		case DOMAIN:
+		case RANGE:
 		case CLASS:
 		case INDIVIDUAL:
 		case PROPERTY:
@@ -2120,6 +2222,13 @@ public class QueryEngineImpl extends QueryEngine
 	{
 		return manager.getOWLDataFactory().getOWLDataProperty(IRI.create(arg.getValue()));
 	}
+
+	private OWLDatatype asDatatype(QueryArgument arg)
+	{
+		return manager.getOWLDataFactory().getOWLDatatype(IRI.create(arg.getValue()));
+	}
+
+
 	
 	private OWLNamedIndividual asIndividual(QueryArgument arg)
 	{	
@@ -2189,7 +2298,12 @@ public class QueryEngineImpl extends QueryEngine
 	{
 		return isDeclared(asAnnotationProperty(arg));
 	}
-	
+
+	private boolean isDeclaredDatatype(QueryArgument arg)
+	{
+		return isDeclared(asDatatype(arg));
+	}
+
 	private boolean isDeclared(OWLNamedIndividual i)
 	{
 		return i.isBuiltIn() || reasoner.getRootOntology().containsIndividualInSignature(i.getIRI(), true);
@@ -2213,5 +2327,10 @@ public class QueryEngineImpl extends QueryEngine
 	private boolean isDeclared(OWLAnnotationProperty p)
 	{
 		return p.isBuiltIn() || reasoner.getRootOntology().containsAnnotationPropertyInSignature(p.getIRI(), true);
+	}
+
+	private boolean isDeclared(OWLDatatype d)
+	{
+		return d.isBuiltIn() || reasoner.getRootOntology().containsDatatypeInSignature(d.getIRI(), true);
 	}
 }
