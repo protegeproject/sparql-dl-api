@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import de.derivo.sparqldlapi.types.QueryArgumentType;
 import jpaul.DataStructs.UnionFind;
 
 import org.semanticweb.owlapi.model.*;
@@ -2069,11 +2070,26 @@ public class QueryEngineImpl extends QueryEngine
 			
 			return reasoner.getEquivalentClasses(factory.getOWLObjectComplementOf(asClass(arg0))).contains(asClass(arg1));
 		case ANNOTATION:
-			arg0 = args.get(0);
-			arg1 = args.get(1);
-			arg2 = args.get(2);
+			arg0 = args.get(0); // Subject
+			arg1 = args.get(1); // Property
+			arg2 = args.get(2); // Object
 			OWLEntity anEntity = null;
 			OWLAnnotationProperty anProp = asAnnotationProperty(arg1);
+			final OWLAnnotationAssertionAxiom ax;
+			if(arg2.getType() == QueryArgumentType.URI) {
+				ax = factory.getOWLAnnotationAssertionAxiom(anProp, IRI.create(arg0.getValue()), IRI.create(arg2.getValue()));
+			}
+			else if(arg2.getType() == QueryArgumentType.BNODE) {
+				ax = factory.getOWLAnnotationAssertionAxiom(anProp, IRI.create(arg0.getValue()), factory.getOWLAnonymousIndividual(arg2.getValue()));
+			}
+			else {
+				LiteralTranslator litTrans = new LiteralTranslator(factory);
+				ax = factory.getOWLAnnotationAssertionAxiom(anProp, IRI.create(arg0.getValue()), litTrans.toOWLLiteral(arg2));
+			}
+			if(reasoner.getRootOntology().containsAxiom(ax)) {
+				return true;
+			}
+
 			if(isDeclaredIndividual(arg0)) {
 				anEntity = asIndividual(arg0);
 			}
@@ -2110,9 +2126,9 @@ public class QueryEngineImpl extends QueryEngine
 				for(OWLAnnotation a : annotations) {
 					if(a.getValue() instanceof OWLLiteral) {
 						OWLLiteral l = (OWLLiteral)a.getValue();
-//						if(l.equals()) {
+						if(l.getLiteral().equals(arg2.getValue())) {
 							return true;
-//						}
+						}
 					}
 				}
 			}
