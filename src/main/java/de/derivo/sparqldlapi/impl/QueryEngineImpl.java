@@ -39,6 +39,8 @@ public class QueryEngineImpl extends QueryEngine
 	private OWLReasoner reasoner;
 	private OWLDataFactory factory;
 	private boolean strictMode;
+	private boolean performArgumentChecking = true;
+
 	public QueryEngineImpl(OWLOntologyManager manager, OWLReasoner reasoner)
 	{
 		this(manager, reasoner, false);
@@ -64,7 +66,11 @@ public class QueryEngineImpl extends QueryEngine
 	{
 		this.strictMode = strict;
 	}
-	
+
+	public void setPerformArgumentChecking(boolean performArgumentChecking) {
+		this.performArgumentChecking = performArgumentChecking;
+	}
+
 	/**
 	 * Execute a sparql-dl query and generate the result set.
 	 * 
@@ -337,15 +343,17 @@ public class QueryEngineImpl extends QueryEngine
 		}
 
 		QueryAtom atom = group.nextAtom();
-		try {
-			checkArgs(atom);
-		}
-		catch(QueryEngineException e) {	
-			// if strict mode is enabled we will throw an exception here
-			if(strictMode) {
-				throw e;
-			}
-			return false;
+		if (performArgumentChecking) {
+			try {
+                checkArgs(atom);
+            }
+            catch(QueryEngineException e) {
+                // if strict mode is enabled we will throw an exception here
+                if(strictMode) {
+                    throw e;
+                }
+                return false;
+            }
 		}
 
 		if(atom.isBound()) {
