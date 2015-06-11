@@ -1888,7 +1888,16 @@ public class QueryEngineImpl extends QueryEngine
 			arg1 = args.get(1);
 			arg2 = args.get(2);
 			if(arg2.isURI()) {
-				return reasoner.getObjectPropertyValues(asIndividual(arg0), asObjectProperty(arg1)).containsEntity(asIndividual(arg2));
+				OWLNamedIndividual subject = asIndividual(arg0);
+				OWLObjectProperty property = asObjectProperty(arg1);
+				OWLNamedIndividual object = asIndividual(arg2);
+				OWLObjectPropertyAssertionAxiom ax = factory.getOWLObjectPropertyAssertionAxiom(property, subject, object);
+				if(reasoner.getRootOntology().containsAxiom(ax)) {
+					return true;
+				}
+				else {
+					return reasoner.getObjectPropertyValues(subject, property).containsEntity(object);
+				}
 			}
 			else if(arg2.isLiteral()) {
 				for(OWLLiteral l : reasoner.getDataPropertyValues(asIndividual(arg0), asDataProperty(arg1))) {
