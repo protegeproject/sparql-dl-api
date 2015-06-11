@@ -1900,7 +1900,15 @@ public class QueryEngineImpl extends QueryEngine
 				}
 			}
 			else if(arg2.isLiteral()) {
-				for(OWLLiteral l : reasoner.getDataPropertyValues(asIndividual(arg0), asDataProperty(arg1))) {
+				OWLNamedIndividual subject = asIndividual(arg0);
+				OWLDataProperty property = asDataProperty(arg1);
+				OWLLiteral object = asLiteral(arg2);
+				OWLDataPropertyAssertionAxiom ax = factory.getOWLDataPropertyAssertionAxiom(property, subject, object);
+				if(reasoner.getRootOntology().containsAxiom(ax)) {
+					return true;
+				}
+				// Not sure about this
+				for(OWLLiteral l : reasoner.getDataPropertyValues(subject, property)) {
 					if(l.getLiteral().equals(asLiteral(arg2).getLiteral())) {
 						return true;
 					}
