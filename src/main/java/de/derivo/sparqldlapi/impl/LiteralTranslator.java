@@ -4,7 +4,10 @@ import de.derivo.sparqldlapi.QueryArgument;
 import de.derivo.sparqldlapi.types.QueryArgumentType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import org.semanticweb.owlapi.vocab.XSDVocabulary;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,8 +24,11 @@ public class LiteralTranslator {
 
     private OWLDataFactory dataFactory;
 
+    private final OWLDatatype STRING_DATATYPE;
+
     public LiteralTranslator(OWLDataFactory dataFactory) {
         this.dataFactory = dataFactory;
+        STRING_DATATYPE = dataFactory.getOWLDatatype(XSDVocabulary.STRING.getIRI());
     }
 
     public OWLLiteral toOWLLiteral(QueryArgument argument) {
@@ -33,8 +39,16 @@ public class LiteralTranslator {
             String datatypeIRI = matcher.group(5);
             if (lang != null) {
                 return dataFactory.getOWLLiteral(literal, lang);
-            } else if (datatypeIRI != null) {
-                return dataFactory.getOWLLiteral(literal, dataFactory.getOWLDatatype(IRI.create(datatypeIRI)));
+            }
+            else if (datatypeIRI != null) {
+                OWLDatatype datatype;
+                if(datatypeIRI.equals("http://www.w3.org/2001/XMLSchema#string")) {
+                    datatype = STRING_DATATYPE;
+                }
+                else {
+                    datatype = dataFactory.getOWLDatatype(IRI.create(datatypeIRI));
+                }
+                return dataFactory.getOWLLiteral(literal, datatype);
             }
         }
         return dataFactory.getOWLLiteral(argument.getValue(), dataFactory.getRDFPlainLiteral());

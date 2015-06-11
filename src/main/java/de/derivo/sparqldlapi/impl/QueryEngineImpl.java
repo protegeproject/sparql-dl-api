@@ -2108,8 +2108,7 @@ public class QueryEngineImpl extends QueryEngine
 				ax = factory.getOWLAnnotationAssertionAxiom(anProp, IRI.create(arg0.getValue()), factory.getOWLAnonymousIndividual(arg2.getValue()));
 			}
 			else {
-				LiteralTranslator litTrans = new LiteralTranslator(factory);
-				ax = factory.getOWLAnnotationAssertionAxiom(anProp, IRI.create(arg0.getValue()), litTrans.toOWLLiteral(arg2));
+				ax = factory.getOWLAnnotationAssertionAxiom(anProp, IRI.create(arg0.getValue()), literalTranslator.toOWLLiteral(arg2));
 			}
 			if(reasoner.getRootOntology().containsAxiom(ax)) {
 				return true;
