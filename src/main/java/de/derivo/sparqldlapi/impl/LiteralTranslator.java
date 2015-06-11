@@ -32,42 +32,44 @@ public class LiteralTranslator {
     }
 
     public OWLLiteral toOWLLiteral(QueryArgument argument) {
-        Matcher matcher = LITERAL_PATTERN.matcher(argument.getValue());
-        if(matcher.matches()) {
-            String literal = matcher.group(1);
-            String lang = matcher.group(3);
-            String datatypeIRI = matcher.group(5);
-            if (lang != null) {
-                return dataFactory.getOWLLiteral(literal, lang);
-            }
-            else if (datatypeIRI != null) {
-                OWLDatatype datatype;
-                if(datatypeIRI.equals("http://www.w3.org/2001/XMLSchema#string")) {
-                    datatype = STRING_DATATYPE;
-                }
-                else {
-                    datatype = dataFactory.getOWLDatatype(IRI.create(datatypeIRI));
-                }
-                return dataFactory.getOWLLiteral(literal, datatype);
-            }
-        }
-        return dataFactory.getOWLLiteral(argument.getValue(), dataFactory.getRDFPlainLiteral());
+        return argument.getValueAsLiteral();
+//        Matcher matcher = LITERAL_PATTERN.matcher(argument.getValue());
+//        if(matcher.matches()) {
+//            String literal = matcher.group(1);
+//            String lang = matcher.group(3);
+//            String datatypeIRI = matcher.group(5);
+//            if (lang != null) {
+//                return dataFactory.getOWLLiteral(literal, lang);
+//            }
+//            else if (datatypeIRI != null) {
+//                OWLDatatype datatype;
+//                if(datatypeIRI.equals("http://www.w3.org/2001/XMLSchema#string")) {
+//                    datatype = STRING_DATATYPE;
+//                }
+//                else {
+//                    datatype = dataFactory.getOWLDatatype(IRI.create(datatypeIRI));
+//                }
+//                return dataFactory.getOWLLiteral(literal, datatype);
+//            }
+//        }
+//        return dataFactory.getOWLLiteral(argument.getValue(), dataFactory.getRDFPlainLiteral());
     }
 
     public static QueryArgument toQueryArgument(OWLLiteral literal) {
-        return toQueryArgument(literal.getLiteral(), literal.getLang(), literal.getDatatype().getIRI().toString());
+        return QueryArgument.newLiteral(literal);
+//        return toQueryArgument(literal.getLiteral(), literal.getLang(), literal.getDatatype().getIRI().toString());
     }
 
-    public static QueryArgument toQueryArgument(String literal, String lang, String datatypeIRI) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("\"");
-        sb.append(literal);
-        if(!lang.isEmpty()) {
-            sb.append("@");
-            sb.append(lang);
-        }
-        sb.append("\"^^");
-        sb.append(datatypeIRI);
-        return new QueryArgument(QueryArgumentType.LITERAL, sb.toString());
-    }
+//    public static QueryArgument toQueryArgument(String literal, String lang, String datatypeIRI) {
+//        StringBuilder sb = new StringBuilder();
+//        sb.append("\"");
+//        sb.append(literal);
+//        if(!lang.isEmpty()) {
+//            sb.append("@");
+//            sb.append(lang);
+//        }
+//        sb.append("\"^^");
+//        sb.append(datatypeIRI);
+//        return new QueryArgument(QueryArgumentType.LITERAL, sb.toString());
+//    }
 }

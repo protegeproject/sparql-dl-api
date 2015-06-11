@@ -5,10 +5,9 @@
 package de.derivo.sparqldlapi;
 
 import de.derivo.sparqldlapi.impl.LiteralTranslator;
-import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.*;
 
 import de.derivo.sparqldlapi.types.QueryArgumentType;
-import org.semanticweb.owlapi.model.OWLLiteral;
 
 /**
  * This class represents a query argument (e.g. an URI or a variable).
@@ -17,12 +16,36 @@ import org.semanticweb.owlapi.model.OWLLiteral;
  */
 public class QueryArgument
 {
-	private String value;
+	private Object value;
+
+//	private String value;
+
+
 	private QueryArgumentType type;
 	
-	public QueryArgument(QueryArgumentType type, String value)
+	public QueryArgument(IRI value)
 	{
-		this.type = type;
+		this.type = QueryArgumentType.URI;
+		this.value = value;
+	}
+
+
+	public QueryArgument(OWLLiteral value)
+	{
+		this.type = QueryArgumentType.LITERAL;
+		this.value = value;
+	}
+
+
+	public QueryArgument(OWLAnonymousIndividual value)
+	{
+		this.type = QueryArgumentType.BNODE;
+		this.value = value;
+	}
+
+	public QueryArgument(Var value)
+	{
+		this.type = QueryArgumentType.VAR;
 		this.value = value;
 	}
 	
@@ -34,19 +57,19 @@ public class QueryArgument
 	 */
 	public static QueryArgument newURI(IRI value)
 	{
-		return new QueryArgument(QueryArgumentType.URI, value.toString());
+		return new QueryArgument(value);
 	}
 	
-	/**
-	 * Factory method to create a QueryArgument instance with type URI by string.
-	 * 
-	 * @param value
-	 * @return
-	 */
-	public static QueryArgument newURI(String value)
-	{
-		return new QueryArgument(QueryArgumentType.URI, value);
-	}
+//	/**
+//	 * Factory method to create a QueryArgument instance with type URI by string.
+//	 *
+//	 * @param value
+//	 * @return
+//	 */
+//	public static QueryArgument newURI(String value)
+//	{
+//		return new QueryArgument(QueryArgumentType.URI, value);
+//	}
 	
 	/**
 	 * Factory method to create a QueryArgument instance with type VAR by string.
@@ -54,9 +77,9 @@ public class QueryArgument
 	 * @param value
 	 * @return
 	 */
-	public static QueryArgument newVar(String value)
+	public static QueryArgument newVar(Var value)
 	{
-		return new QueryArgument(QueryArgumentType.VAR, value);
+		return new QueryArgument(value);
 	}
 	
 	/**
@@ -65,9 +88,9 @@ public class QueryArgument
 	 * @param value
 	 * @return
 	 */
-	public static QueryArgument newBnode(String value)
+	public static QueryArgument newBnode(OWLAnonymousIndividual value)
 	{
-		return new QueryArgument(QueryArgumentType.BNODE, value);
+		return new QueryArgument(value);
 	}
 	
 	/**
@@ -76,22 +99,56 @@ public class QueryArgument
 	 * @return
 	 */
 //	public static QueryArgument newLiteral(String value, String datatype, String lang)
-	public static QueryArgument newLiteral(OWLLiteral literal, LiteralTranslator translator)
+	public static QueryArgument newLiteral(OWLLiteral literal)
 	{
-        return translator.toQueryArgument(literal);
+        return new QueryArgument(literal);
 	}
 
 	
-	/**
-	 * Get the value of the query argument.
-	 * 
-	 * @return
-	 */
-	public String getValue()
-	{
-		return value;
+//	/**
+//	 * Get the value of the query argument.
+//	 *
+//	 * @return
+//	 */
+//	public Object getValue()
+//	{
+//		return value;
+//	}
+
+	public IRI getValueAsIRI() {
+		return (IRI) value;
 	}
-	
+
+	public OWLLiteral getValueAsLiteral() {
+		return (OWLLiteral) value;
+	}
+
+	public Var getValueAsVar() {
+		return (Var) value;
+	}
+
+	public OWLAnonymousIndividual getValueAsBNode() {
+		return (OWLAnonymousIndividual) value;
+	}
+
+	public String getValueAsString() {
+		if(value instanceof IRI) {
+			return value.toString();
+		}
+		else if(value instanceof OWLLiteral) {
+			return ((OWLLiteral) value).getLiteral();
+		}
+		else if(value instanceof OWLAnonymousIndividual) {
+			return ((OWLAnonymousIndividual) value).getID().toString();
+		}
+		else if(value instanceof Var) {
+			return ((Var) value).getName();
+		}
+		else {
+			return value.toString();
+		}
+	}
+
 	/**
 	 * Get the type of the query argument.
 	 * 
@@ -180,19 +237,20 @@ public class QueryArgument
 		switch(type) {
 		case LITERAL:
 			sb = new StringBuffer();
-			sb.append('"');
-			char c;
-			int pos = 0;
-			while(pos < value.length()) {
-				c = value.charAt(pos);
-				if(c == '"' || c == '\\') {
-					sb.append('\\');
-				}
-				sb.append(c);
-				pos++;
-			}
-			sb.append('"');
-			return sb.toString();
+			sb.append(value);
+//			sb.append('"');
+//			char c;
+//			int pos = 0;
+//			while(pos < value.length()) {
+//				c = value.charAt(pos);
+//				if(c == '"' || c == '\\') {
+//					sb.append('\\');
+//				}
+//				sb.append(c);
+//				pos++;
+//			}
+//			sb.append('"');
+//			return sb.toString();
 		case VAR:
 			sb = new StringBuffer();
 			sb.append('?');
@@ -204,7 +262,7 @@ public class QueryArgument
 			sb.append(value);
 			sb.append('>');
 		default:
-			return value;
+			return value.toString();
 		}
 	}
 }

@@ -9,6 +9,7 @@ import static org.junit.Assert.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import de.derivo.sparqldlapi.Var;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,10 +34,10 @@ public class QueryBindingTest
 	@Before
 	public void setUp() 
 	{
-		varArg = new QueryArgument(QueryArgumentType.VAR, "x");
-		uriArg = new QueryArgument(QueryArgumentType.URI, "test");
-		varArg2 = new QueryArgument(QueryArgumentType.VAR, "y");
-		uriArg2 = new QueryArgument(QueryArgumentType.URI, "test2");
+		varArg = new QueryArgument(new Var("x"));
+		uriArg = new QueryArgument(new Var("test"));
+		varArg2 = new QueryArgument(new Var("y"));
+		uriArg2 = new QueryArgument(new Var("test2"));
 	}
 	
 	@After

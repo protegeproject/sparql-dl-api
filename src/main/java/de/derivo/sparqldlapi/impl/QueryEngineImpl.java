@@ -35,7 +35,6 @@ import de.derivo.sparqldlapi.types.QueryType;
 public class QueryEngineImpl extends QueryEngine
 {
 	private final OWLOntologyManager manager;
-	private final LiteralTranslator literalTranslator;
 	private OWLReasoner reasoner;
 	private OWLDataFactory factory;
 	private boolean strictMode;
@@ -56,7 +55,6 @@ public class QueryEngineImpl extends QueryEngine
 	public QueryEngineImpl(OWLOntologyManager manager, OWLReasoner reasoner, boolean strictMode)
 	{
 		this.manager = manager;
-		literalTranslator = new LiteralTranslator(manager.getOWLDataFactory());
 		this.reasoner = reasoner;
 		this.factory = manager.getOWLDataFactory();
 		this.strictMode = strictMode;
@@ -873,7 +871,7 @@ public class QueryEngineImpl extends QueryEngine
 					Set<OWLLiteral> candidates = reasoner.getDataPropertyValues(ind0, dp1);
 					for(OWLLiteral c : candidates) {
 						new_binding = binding.clone();
-                        new_binding.set(arg2, literalTranslator.toQueryArgument(c));
+                        new_binding.set(arg2, QueryArgument.newLiteral(c));
 						if(eval(query, group.bind(new_binding), result, new_binding)) {
 							ret = true;
 						}
@@ -1369,7 +1367,7 @@ public class QueryEngineImpl extends QueryEngine
 					Set<OWLLiteral> candidates = reasoner.getDataPropertyValues(ind0, dp1);
 					for(OWLLiteral c : candidates) {
 						new_binding = binding.clone();
-						new_binding.set(arg2, literalTranslator.toQueryArgument(c));
+						new_binding.set(arg2, QueryArgument.newLiteral(c));
 						if(eval(query, group.bind(new_binding), result, new_binding)) {
 							ret = true;
 						}
@@ -1410,7 +1408,7 @@ public class QueryEngineImpl extends QueryEngine
 						else if(a.getValue() instanceof OWLLiteral) {
 							OWLLiteral l = (OWLLiteral)a.getValue();
 							new_binding = binding.clone();
-							new_binding.set(arg2, literalTranslator.toQueryArgument(l));
+							new_binding.set(arg2, QueryArgument.newLiteral(l));
 							if(eval(query, group.bind(new_binding), result, new_binding)) {
 								ret = true;
 							}
@@ -2040,10 +2038,13 @@ public class QueryEngineImpl extends QueryEngine
 				return reasoner.getDataPropertyDomains(dp_0, false).containsEntity(asClass(arg1));
 			}
 			else if(isDeclared(ap_0)) {
+				if(!arg1.isURI()) {
+					return false;
+				}
 				Set<OWLAnnotationPropertyDomainAxiom> axioms = reasoner.getRootOntology().getAxioms(AxiomType.ANNOTATION_PROPERTY_DOMAIN, true);
 				for(OWLAnnotationPropertyDomainAxiom ax : axioms) {
 					if(ax.getProperty().equals(ap_0)) {
-						if(ax.getDomain().toString().equals(arg1.getValue())) {
+						if(ax.getDomain().equals(arg1.getValueAsIRI())) {
 							return true;
 						}
 					}
@@ -2064,10 +2065,13 @@ public class QueryEngineImpl extends QueryEngine
 				return reasoner.isEntailed(ax);
 			}
 			else if(isDeclared(rng_ap_0)) {
+				if(!arg1.isURI()) {
+					return false;
+				}
 				Set<OWLAnnotationPropertyRangeAxiom> axioms = reasoner.getRootOntology().getAxioms(AxiomType.ANNOTATION_PROPERTY_RANGE, true);
 				for(OWLAnnotationPropertyRangeAxiom ax : axioms) {
 					if(ax.getProperty().equals(rng_ap_0)) {
-						if(ax.getRange().toString().equals(arg1.getValue())) {
+						if(ax.getRange().equals(arg1.getValueAsIRI())) {
 							return true;
 						}
 					}
@@ -2102,13 +2106,13 @@ public class QueryEngineImpl extends QueryEngine
 			OWLAnnotationProperty anProp = asAnnotationProperty(arg1);
 			final OWLAnnotationAssertionAxiom ax;
 			if(arg2.getType() == QueryArgumentType.URI) {
-				ax = factory.getOWLAnnotationAssertionAxiom(anProp, IRI.create(arg0.getValue()), IRI.create(arg2.getValue()));
+				ax = factory.getOWLAnnotationAssertionAxiom(anProp, arg0.getValueAsIRI(), arg2.getValueAsIRI());
 			}
 			else if(arg2.getType() == QueryArgumentType.BNODE) {
-				ax = factory.getOWLAnnotationAssertionAxiom(anProp, IRI.create(arg0.getValue()), factory.getOWLAnonymousIndividual(arg2.getValue()));
+				ax = factory.getOWLAnnotationAssertionAxiom(anProp, arg0.getValueAsIRI(), arg2.getValueAsBNode());
 			}
 			else {
-				ax = factory.getOWLAnnotationAssertionAxiom(anProp, IRI.create(arg0.getValue()), literalTranslator.toOWLLiteral(arg2));
+				ax = factory.getOWLAnnotationAssertionAxiom(anProp, arg0.getValueAsIRI(), arg2.getValueAsLiteral());
 			}
 			if(reasoner.getRootOntology().containsAxiom(ax)) {
 				return true;
@@ -2140,7 +2144,7 @@ public class QueryEngineImpl extends QueryEngine
 				for(OWLAnnotation a : annotations) {
 					if(a.getValue() instanceof IRI) {
 						IRI i = (IRI)a.getValue();
-						if(i.toString().equals(arg2.getValue())) {
+						if(i.equals(arg2.getValueAsIRI())) {
 							return true;
 						}
 					}
@@ -2150,7 +2154,7 @@ public class QueryEngineImpl extends QueryEngine
 				for(OWLAnnotation a : annotations) {
 					if(a.getValue() instanceof OWLLiteral) {
 						OWLLiteral l = (OWLLiteral)a.getValue();
-						if(l.getLiteral().equals(arg2.getValue())) {
+						if(l.equals(arg2.getValueAsLiteral())) {
 							return true;
 						}
 					}
@@ -2250,39 +2254,39 @@ public class QueryEngineImpl extends QueryEngine
 	
 	private OWLClass asClass(QueryArgument arg)
 	{
-		return manager.getOWLDataFactory().getOWLClass(IRI.create(arg.getValue()));
+		return manager.getOWLDataFactory().getOWLClass(arg.getValueAsIRI());
 	}
 	
 	private OWLObjectProperty asObjectProperty(QueryArgument arg)
 	{
-		return manager.getOWLDataFactory().getOWLObjectProperty(IRI.create(arg.getValue()));
+		return manager.getOWLDataFactory().getOWLObjectProperty(arg.getValueAsIRI());
 	}
 	
 	private OWLDataProperty asDataProperty(QueryArgument arg)
 	{
-		return manager.getOWLDataFactory().getOWLDataProperty(IRI.create(arg.getValue()));
+		return manager.getOWLDataFactory().getOWLDataProperty(arg.getValueAsIRI());
 	}
 
 	private OWLDatatype asDatatype(QueryArgument arg)
 	{
-		return manager.getOWLDataFactory().getOWLDatatype(IRI.create(arg.getValue()));
+		return manager.getOWLDataFactory().getOWLDatatype(arg.getValueAsIRI());
 	}
 
 
 	
 	private OWLNamedIndividual asIndividual(QueryArgument arg)
 	{	
-		return manager.getOWLDataFactory().getOWLNamedIndividual(IRI.create(arg.getValue()));
+		return manager.getOWLDataFactory().getOWLNamedIndividual(arg.getValueAsIRI());
 	}
 	
 	private OWLLiteral asLiteral(QueryArgument arg)
 	{
-		return literalTranslator.toOWLLiteral(arg);
+		return arg.getValueAsLiteral();
 	}
 	
 	private OWLAnnotationProperty asAnnotationProperty(QueryArgument arg)
 	{
-		return manager.getOWLDataFactory().getOWLAnnotationProperty(IRI.create(arg.getValue()));
+		return manager.getOWLDataFactory().getOWLAnnotationProperty(arg.getValueAsIRI());
 	}
 	
 	private Set<OWLClass> getClasses()

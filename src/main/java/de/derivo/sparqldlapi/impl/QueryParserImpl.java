@@ -9,16 +9,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import de.derivo.sparqldlapi.Query;
-import de.derivo.sparqldlapi.QueryArgument;
-import de.derivo.sparqldlapi.QueryAtom;
-import de.derivo.sparqldlapi.QueryAtomGroup;
-import de.derivo.sparqldlapi.QueryParser;
-import de.derivo.sparqldlapi.QueryToken;
+import de.derivo.sparqldlapi.*;
 import de.derivo.sparqldlapi.exceptions.QueryParserException;
 import de.derivo.sparqldlapi.impl.QueryImpl;
 import de.derivo.sparqldlapi.types.QueryAtomType;
 import de.derivo.sparqldlapi.types.QueryType;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.NodeID;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
@@ -168,7 +165,7 @@ public class QueryParserImpl implements QueryParser
 		}
 		
 		while(isVar(token.getToken())){
-			query.addResultVar(QueryArgument.newVar(token.getToken().substring(1)));
+			query.addResultVar(QueryArgument.newVar(new Var(token.getToken().substring(1))));
 			
 			pos++;
 			token = tokens.get(pos);
@@ -499,29 +496,29 @@ public class QueryParserImpl implements QueryParser
 	
 	private void appendURI(String s) 
 	{
-		currentArgs.add(QueryArgument.newURI(s.substring(1, s.length() - 1)));
+		currentArgs.add(QueryArgument.newURI(IRI.create(s.substring(1, s.length() - 1))));
 	}
 	
 	private void appendPrefixURI(String s)
 	{
-		currentArgs.add(QueryArgument.newURI(uriWithPrefix(s)));
+		currentArgs.add(QueryArgument.newURI(IRI.create(uriWithPrefix(s))));
 	}
 
 	private void appendBnode(String s) 
 	{
-		currentArgs.add(QueryArgument.newBnode(s));
+		currentArgs.add(QueryArgument.newBnode(OWLDataFactoryImpl.getInstance().getOWLAnonymousIndividual(s)));
 	}
 	
 	private void appendLiteral(String s) 
 	{
 		OWLDataFactory df = OWLDataFactoryImpl.getInstance();
 		OWLLiteral literal = df.getOWLLiteral(s, df.getRDFPlainLiteral());
-		currentArgs.add(QueryArgument.newLiteral(literal, new LiteralTranslator(df)));
+		currentArgs.add(QueryArgument.newLiteral(literal));
 	}
 	
 	private void appendVar(String s) 
 	{
-		currentArgs.add(QueryArgument.newVar(s.substring(1)));
+		currentArgs.add(QueryArgument.newVar(new Var(s.substring(1))));
 	}
 	
 	private String uriWithPrefix(String s)

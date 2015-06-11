@@ -11,20 +11,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import de.derivo.sparqldlapi.*;
 import org.junit.Test;
 
-import de.derivo.sparqldlapi.Query;
-import de.derivo.sparqldlapi.QueryArgument;
-import de.derivo.sparqldlapi.QueryAtom;
-import de.derivo.sparqldlapi.QueryParser;
-import de.derivo.sparqldlapi.QueryToken;
-import de.derivo.sparqldlapi.QueryTokenizer;
 import de.derivo.sparqldlapi.exceptions.QueryParserException;
 import de.derivo.sparqldlapi.impl.QueryParserImpl;
 import de.derivo.sparqldlapi.impl.QueryTokenizerImpl;
 import de.derivo.sparqldlapi.types.QueryArgumentType;
 import de.derivo.sparqldlapi.types.QueryAtomType;
 import de.derivo.sparqldlapi.types.QueryType;
+import org.semanticweb.owlapi.model.IRI;
 
 /**
  * A jUnit 4.0 test class to test the implementation of QueryParser
@@ -48,22 +44,22 @@ public class QueryParserTest
 		Query query = parser.parse(tokens);
 		
 		Set<QueryArgument> resultVars = new HashSet<QueryArgument>();
-		resultVars.add(new QueryArgument(QueryArgumentType.VAR, "i"));
-		resultVars.add(new QueryArgument(QueryArgumentType.VAR, "v"));
-		resultVars.add(new QueryArgument(QueryArgumentType.VAR, "p"));
+		resultVars.add(new QueryArgument(new Var("i")));
+		resultVars.add(new QueryArgument(new Var("v")));
+		resultVars.add(new QueryArgument(new Var("p")));
 		
 		List<QueryAtom> atoms = new LinkedList<QueryAtom>();
 		atoms.add(new QueryAtom(
 			QueryAtomType.PROPERTY_VALUE, 
-			new QueryArgument(QueryArgumentType.VAR, "i"),
-			new QueryArgument(QueryArgumentType.URI, "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#hasColor"),
-			new QueryArgument(QueryArgumentType.VAR, "v")
+			new QueryArgument(new Var("i")),
+			new QueryArgument(IRI.create("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#hasColor")),
+			new QueryArgument(new Var("v"))
 		));
 		atoms.add(new QueryAtom(
 			QueryAtomType.PROPERTY_VALUE, 
-			new QueryArgument(QueryArgumentType.VAR, "p"),
-			new QueryArgument(QueryArgumentType.URI, "http://xmlns.com/foaf/0.1/name"),
-			new QueryArgument(QueryArgumentType.LITERAL, "\"foo \" bar\"^^http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral")
+			new QueryArgument(new Var("p")),
+			new QueryArgument(IRI.create("http://xmlns.com/foaf/0.1/name")),
+			new QueryArgument(IRI.create("\"foo \" bar\"^^http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"))
 		));
 		
 		assertEquals(query.getType(), QueryType.SELECT);
@@ -99,22 +95,22 @@ public class QueryParserTest
 		Query query = parser.parse(tokens);
 		
 		Set<QueryArgument> resultVars = new HashSet<QueryArgument>();
-		resultVars.add(new QueryArgument(QueryArgumentType.VAR, "i"));
-		resultVars.add(new QueryArgument(QueryArgumentType.VAR, "v"));
-		resultVars.add(new QueryArgument(QueryArgumentType.VAR, "p"));
+		resultVars.add(new QueryArgument(new Var("i")));
+		resultVars.add(new QueryArgument(new Var("v")));
+		resultVars.add(new QueryArgument(new Var("p")));
 		
 		List<QueryAtom> atoms = new LinkedList<QueryAtom>();
 		atoms.add(new QueryAtom(
 			QueryAtomType.PROPERTY_VALUE, 
-			new QueryArgument(QueryArgumentType.VAR, "i"),
-			new QueryArgument(QueryArgumentType.URI, "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#hasColor"),
-			new QueryArgument(QueryArgumentType.VAR, "v")
+			new QueryArgument(new Var("i")),
+			new QueryArgument(IRI.create("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#hasColor")),
+			new QueryArgument(new Var("v"))
 		));
 		atoms.add(new QueryAtom(
 			QueryAtomType.PROPERTY_VALUE, 
-			new QueryArgument(QueryArgumentType.VAR, "p"),
-			new QueryArgument(QueryArgumentType.URI, "http://xmlns.com/foaf/0.1/name"),
-			new QueryArgument(QueryArgumentType.LITERAL, "foo \" bar^^http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral")
+			new QueryArgument(new Var("p")),
+			new QueryArgument(IRI.create("http://xmlns.com/foaf/0.1/name")),
+			new QueryArgument(IRI.create("foo \" bar^^http://www.w3.org/1999/02/22-rdf-syntax-ns#PlainLiteral"))
 		));
 		
 		assertEquals(query.getType(), QueryType.SELECT_DISTINCT);
@@ -141,9 +137,9 @@ public class QueryParserTest
 		List<QueryAtom> atoms = new LinkedList<QueryAtom>();
 		atoms.add(new QueryAtom(
 			QueryAtomType.PROPERTY_VALUE, 
-			new QueryArgument(QueryArgumentType.VAR, "i"),
-			new QueryArgument(QueryArgumentType.URI, "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#hasColor"),
-			new QueryArgument(QueryArgumentType.VAR, "v")
+			new QueryArgument(new Var("i")),
+			new QueryArgument(IRI.create("http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine#hasColor")),
+			new QueryArgument(new Var("v"))
 		));
 		
 		assertEquals(query.getType(), QueryType.ASK);

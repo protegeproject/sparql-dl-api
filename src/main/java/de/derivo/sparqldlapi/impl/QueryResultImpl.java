@@ -148,7 +148,7 @@ public class QueryResultImpl implements QueryResult
 			for(QueryArgument arg : top.getBoundArgs()) {
 				if(arg.isVar()) {
 					Element var = new Element("variable");
-					var.setAttribute("name", arg.getValue());
+					var.setAttribute("name", arg.getValueAsString());
 					head.addContent(var);
 				}
 			}
@@ -173,22 +173,22 @@ public class QueryResultImpl implements QueryResult
 				for(QueryArgument key : binding.getBoundArgs()) {
 					if(key.isVar()) {
 						Element b = new Element("binding");
-						b.setAttribute("name", key.getValue());
+						b.setAttribute("name", key.getValueAsString());
 						QueryArgument value = binding.get(key);
 						switch(value.getType()) {
 						case URI:
 							Element uri = new Element("uri");
-							uri.setText(value.getValue());
+							uri.setText(value.getValueAsIRI().toString());
 							b.addContent(uri);
 							break;
 						case LITERAL:
 							Element literal = new Element("literal");
-							literal.setText(value.getValue());
+							literal.setText(value.getValueAsLiteral().getLiteral());
 							b.addContent(literal);
 							break;
 						case BNODE:
 							Element bnode = new Element("bnode");
-							bnode.setText(value.getValue());
+							bnode.setText(value.getValueAsBNode().getID().toString());
 							b.addContent(bnode);
 							break;
 						default:
@@ -230,7 +230,7 @@ public class QueryResultImpl implements QueryResult
 						sb.append(",\n");
 					}
 					sb.append("\t\t\t\"");
-					sb.append(arg.getValue());
+					sb.append(arg.getValueAsString());
 					sb.append("\"");
 				}
 			}
@@ -269,26 +269,26 @@ public class QueryResultImpl implements QueryResult
 							sb.append(",\n");
 						}
 						sb.append("\t\t\t\t\"");
-						sb.append(key.getValue());
+						sb.append(key.getValueAsString());
 						sb.append("\": {\n");
 						QueryArgument value = binding.get(key);
 						switch(value.getType()) {
 						case URI:
 							sb.append("\t\t\t\t\t\"type\": \"uri\",\n");
 							sb.append("\t\t\t\t\t\"value\": \"");
-							sb.append(value.getValue().replaceAll("\"", "\\\\\""));
+							sb.append(value.getValueAsIRI().toString().replaceAll("\"", "\\\\\""));
 							sb.append("\"\n");
 							break;
 						case LITERAL:
 							sb.append("\t\t\t\t\t\"type\": \"literal\",\n");
 							sb.append("\t\t\t\t\t\"value\": \"");
-							sb.append(value.getValue().replaceAll("\"", "\\\\\""));
+							sb.append(value.getValueAsLiteral().getLiteral().replaceAll("\"", "\\\\\""));
 							sb.append("\"\n");
 							break;
 						case BNODE:
 							sb.append("\t\t\t\t\t\"type\": \"bnode\",\n");
 							sb.append("\t\t\t\t\t\"value\": \"");
-							sb.append(value.getValue().replaceAll("\"", "\\\\\""));
+							sb.append(value.getValueAsBNode().getID().toString().replaceAll("\"", "\\\\\""));
 							sb.append("\"\n");
 							break;
 						default:

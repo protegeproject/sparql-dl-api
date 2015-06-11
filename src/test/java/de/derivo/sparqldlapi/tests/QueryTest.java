@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import de.derivo.sparqldlapi.Var;
 import org.junit.Test;
 
 import de.derivo.sparqldlapi.Query;
@@ -20,6 +21,7 @@ import de.derivo.sparqldlapi.impl.QueryAtomGroupImpl;
 import de.derivo.sparqldlapi.impl.QueryImpl;
 import de.derivo.sparqldlapi.types.QueryArgumentType;
 import de.derivo.sparqldlapi.types.QueryType;
+import org.semanticweb.owlapi.model.IRI;
 
 /**
  * A jUnit 4.0 test class to test the implementation of Query
@@ -48,7 +50,7 @@ public class QueryTest
 	public void testIsResultVariable() 
 	{
 		QueryImpl query = new QueryImpl(QueryType.SELECT);
-		QueryArgument arg = new QueryArgument(QueryArgumentType.VAR, "x");
+		QueryArgument arg = new QueryArgument(new Var("x"));
 		
 		assertFalse(query.isResultVar(arg));
 		
@@ -60,7 +62,7 @@ public class QueryTest
 	public void testNumResultVars() 
 	{
 		QueryImpl query = new QueryImpl(QueryType.SELECT);
-		QueryArgument arg = new QueryArgument(QueryArgumentType.VAR, "x");
+		QueryArgument arg = new QueryArgument(new Var("x"));
 		
 		assertEquals(query.numResultVars(), 0);
 		
@@ -72,7 +74,7 @@ public class QueryTest
 		assertEquals(query.numResultVars(), 1);
 		
 		// no other entries than variables
-		QueryArgument arg2 = new QueryArgument(QueryArgumentType.URI, "http://example.com");
+		QueryArgument arg2 = new QueryArgument(IRI.create("http://example.com"));
 		query.addResultVar(arg2);
 		assertEquals(query.numResultVars(), 1);
 	}
@@ -81,14 +83,14 @@ public class QueryTest
 	public void testGetResultVars() 
 	{
 		QueryImpl query = new QueryImpl(QueryType.SELECT);
-		QueryArgument arg = new QueryArgument(QueryArgumentType.VAR, "x");
+		QueryArgument arg = new QueryArgument(new Var("x"));
 		query.addResultVar(arg);
 		
 		// no duplicate entries
 		query.addResultVar(arg);
 		
 		// no other entries than variables
-		QueryArgument arg2 = new QueryArgument(QueryArgumentType.URI, "http://example.com");
+		QueryArgument arg2 = new QueryArgument(IRI.create("http://example.com"));
 		query.addResultVar(arg2);
 		
 		Set<QueryArgument> resultVars = new HashSet<QueryArgument>();

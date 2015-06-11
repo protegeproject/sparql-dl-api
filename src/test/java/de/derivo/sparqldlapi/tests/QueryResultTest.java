@@ -5,16 +5,13 @@
 package de.derivo.sparqldlapi.tests;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
+import de.derivo.sparqldlapi.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.derivo.sparqldlapi.Query;
-import de.derivo.sparqldlapi.QueryArgument;
-import de.derivo.sparqldlapi.QueryAtom;
-import de.derivo.sparqldlapi.QueryAtomGroup;
-import de.derivo.sparqldlapi.QueryResult;
 import de.derivo.sparqldlapi.impl.QueryAtomGroupImpl;
 import de.derivo.sparqldlapi.impl.QueryBindingImpl;
 import de.derivo.sparqldlapi.impl.QueryImpl;
@@ -22,6 +19,8 @@ import de.derivo.sparqldlapi.impl.QueryResultImpl;
 import de.derivo.sparqldlapi.types.QueryArgumentType;
 import de.derivo.sparqldlapi.types.QueryAtomType;
 import de.derivo.sparqldlapi.types.QueryType;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLLiteral;
 
 /**
  * A jUnit 4.0 test class to test the implementation of QueryResult
@@ -38,9 +37,9 @@ public class QueryResultTest
 	@Before
 	public void setUp()
 	{	
-		arg1 = new QueryArgument(QueryArgumentType.VAR, "x");
-		arg2 = new QueryArgument(QueryArgumentType.URI, "http://xmlns.com/foaf/0.1/name");
-		arg3 = new QueryArgument(QueryArgumentType.LITERAL, "foobar");
+		arg1 = new QueryArgument(new Var("x"));
+		arg2 = new QueryArgument(IRI.create("http://xmlns.com/foaf/0.1/name"));
+		arg3 = new QueryArgument(mock(OWLLiteral.class));
 		
 		atom = new QueryAtom(QueryAtomType.PROPERTY_VALUE, arg1, arg2, arg3);
 		
@@ -78,7 +77,7 @@ public class QueryResultTest
 		QueryResultImpl result = new QueryResultImpl(query);
 		assertTrue(result.size() == 0);
 		
-		QueryArgument boundArg = new QueryArgument(QueryArgumentType.URI, "http://example.com");
+		QueryArgument boundArg = new QueryArgument(IRI.create("http://example.com"));
 		QueryBindingImpl binding = new QueryBindingImpl();
 		binding.set(arg1, boundArg);
 		result.add(binding);
@@ -89,7 +88,7 @@ public class QueryResultTest
 	public void testGet() 
 	{
 		QueryResultImpl result = new QueryResultImpl(query);
-		QueryArgument boundArg = new QueryArgument(QueryArgumentType.URI, "http://example.com");
+		QueryArgument boundArg = new QueryArgument(IRI.create("http://example.com"));
 		QueryBindingImpl binding = new QueryBindingImpl();
 		binding.set(arg1, boundArg);
 		result.add(binding);
@@ -109,7 +108,7 @@ public class QueryResultTest
 		QueryResultImpl result = new QueryResultImpl(query);
 		assertTrue(result.isEmpty());
 		
-		QueryArgument boundArg = new QueryArgument(QueryArgumentType.URI, "http://example.com");
+		QueryArgument boundArg = new QueryArgument(IRI.create("http://example.com"));
 		QueryBindingImpl binding = new QueryBindingImpl();
 		binding.set(arg1, boundArg);
 		result.add(binding);
