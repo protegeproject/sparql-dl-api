@@ -433,7 +433,7 @@ public class QueryEngineImpl extends QueryEngine
 				
 				// if not strict we also include all equivalent classes
 				if(!strict) {
-					candidates.addAll(reasoner.getEquivalentClasses(asClass(arg1)).getEntities());
+					candidates.addAll(reasoner.getEquivalentClasses(asClass(arg0)).getEntities());
 				}
 				
 				for(OWLClass c : candidates) {
@@ -1873,10 +1873,17 @@ public class QueryEngineImpl extends QueryEngine
 		QueryArgument arg0, arg1, arg2;
 		
 		switch(atom.getType()) {
-		case TYPE:
+		case TYPE: {
 			arg0 = args.get(0);
 			arg1 = args.get(1);
-			return reasoner.getTypes(asIndividual(arg0), false).containsEntity(asClass(arg1));
+			OWLNamedIndividual ind = asIndividual(arg0);
+			OWLClass cls = asClass(arg1);
+			OWLClassAssertionAxiom ax = factory.getOWLClassAssertionAxiom(cls, ind);
+			if(reasoner.getRootOntology().containsAxiom(ax, true)) {
+				return true;
+			}
+			return reasoner.getTypes(ind, false).containsEntity(cls);
+		}
 		case DIRECT_TYPE:
 			arg0 = args.get(0);
 			arg1 = args.get(1);
