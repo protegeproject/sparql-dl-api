@@ -1119,7 +1119,7 @@ public class QueryEngineImpl extends QueryEngine
 					for(OWLObjectPropertyExpression p : candidates) {
 						if(!p.isAnonymous()) {
 							new_binding = binding.clone();
-							new_binding.set(arg0, QueryArgument.newURI(p.getNamedProperty().getIRI()));
+							new_binding.set(arg1, QueryArgument.newURI(p.getNamedProperty().getIRI()));
 							if(eval(query, group.bind(new_binding), result, new_binding)) {
 								ret = true;
 							}
