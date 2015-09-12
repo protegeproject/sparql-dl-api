@@ -4,10 +4,65 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+
     <groupId>edu.protege.stanford</groupId>
     <artifactId>de-derivo-sparqldlapi</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+
+    <description>This library was originally developed by Mario Volke and Derivo Systems.</description>
+    <url>http://www.derivo.de/en/resources/sparql-dl-api.html</url>
+    <licenses>
+        <license>
+            <name>GNU LGPL Version 3.0</name>
+            <url>http://www.gnu.org/licenses/lgpl.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>matthewhorridge</id>
+            <name>Matthew Horridge</name>
+            <email>matthew.horridge@stanford.edu</email>
+        </developer>
+    </developers>
+
+    <contributors>
+        <contributor>
+            <name>Mario Volke</name>
+        </contributor>
+        <contributor>
+            <name>Olaf Noppens</name>
+        </contributor>
+        <contributor>
+            <name>Thorsten Liebig</name>
+        </contributor>
+    </contributors>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <connection>scm:git:git@github.com:protegeproject/sparql-dl-api.git</connection>
+        <developerConnection>scm:git:git@github.com:protegeproject/sparql-dl-api.git</developerConnection>
+        <url>https://github.com/protegeproject/sparql-dl-api</url>
+    </scm>
+
 
     <repositories>
         <!-- For jpaul -->
@@ -51,6 +106,7 @@
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
