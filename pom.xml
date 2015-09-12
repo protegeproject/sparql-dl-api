@@ -11,7 +11,7 @@
 
     <groupId>edu.protege.stanford</groupId>
     <artifactId>de-derivo-sparqldlapi</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <description>This library was originally developed by Mario Volke and Derivo Systems.</description>
