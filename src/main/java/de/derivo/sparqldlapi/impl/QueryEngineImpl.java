@@ -26,6 +26,7 @@ import de.derivo.sparqldlapi.QueryEngine;
 import de.derivo.sparqldlapi.QueryResult;
 import de.derivo.sparqldlapi.exceptions.QueryEngineException;
 import de.derivo.sparqldlapi.types.QueryType;
+import org.semanticweb.owlapi.search.EntitySearcher;
 
 /**
  * A concrete implementation of the query engine interface utilizing the OWL-API.
@@ -1393,7 +1394,7 @@ public class QueryEngineImpl extends QueryEngine
 					
 					Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>();
 					for(OWLOntology o : reasoner.getRootOntology().getImportsClosure()) {
-						annotations.addAll(anEntity.getAnnotations(o, anProp));
+						annotations.addAll(EntitySearcher.getAnnotations(anEntity, o, anProp));
 					}
 
 					for(OWLAnnotation a : annotations) {
@@ -2144,7 +2145,7 @@ public class QueryEngineImpl extends QueryEngine
 			
 			Set<OWLAnnotation> annotations = new HashSet<OWLAnnotation>();
 			for(OWLOntology o : reasoner.getRootOntology().getImportsClosure()) {
-				annotations.addAll(anEntity.getAnnotations(o, anProp));
+				annotations.addAll(EntitySearcher.getAnnotations(anEntity, o, anProp));
 			}
 			
 			if(arg2.isURI()) {

@@ -35,9 +35,11 @@ public class QueryParserImpl implements QueryParser
 	private QueryAtomType currentAtomType;
 	private List<QueryArgument> currentArgs;
 	private Map<String, String> prefixes;
+	private final OWLDataFactory df;
 	
-	public QueryParserImpl() 
-	{}
+	public QueryParserImpl() {
+		df = new OWLDataFactoryImpl();
+	}
 	
 	private void reset()
 	{
@@ -506,12 +508,11 @@ public class QueryParserImpl implements QueryParser
 
 	private void appendBnode(String s) 
 	{
-		currentArgs.add(QueryArgument.newBnode(OWLDataFactoryImpl.getInstance().getOWLAnonymousIndividual(s)));
+		currentArgs.add(QueryArgument.newBnode(df.getOWLAnonymousIndividual(s)));
 	}
 	
 	private void appendLiteral(String s) 
 	{
-		OWLDataFactory df = OWLDataFactoryImpl.getInstance();
 		OWLLiteral literal = df.getOWLLiteral(s, df.getRDFPlainLiteral());
 		currentArgs.add(QueryArgument.newLiteral(literal));
 	}
