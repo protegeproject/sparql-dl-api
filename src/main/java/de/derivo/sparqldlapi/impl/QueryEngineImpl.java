@@ -11,7 +11,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-
 import de.derivo.sparqldlapi.types.QueryArgumentType;
 import jpaul.DataStructs.UnionFind;
 
@@ -414,12 +413,10 @@ public class QueryEngineImpl extends QueryEngine
 			else if(arg0.isVar()) {
 				OWLClass class1 = asClass(arg1);
 				Set<OWLClass> candidates = reasoner.getSubClasses(class1, false).getFlattened();
-				
 				// if not strict we also include all equivalent classes
 				if(!strict) {
 					candidates.addAll(reasoner.getEquivalentClasses(asClass(arg1)).getEntities());
 				}
-				
 				for(OWLClass c : candidates) {
 					new_binding = binding.clone();
 					new_binding.set(arg0, QueryArgument.newURI(c.getIRI()));
@@ -1925,8 +1922,7 @@ public class QueryEngineImpl extends QueryEngine
 		case SUB_CLASS_OF:
 			arg0 = args.get(0);
 			arg1 = args.get(1);
-			return reasoner.getSubClasses(asClass(arg1), false).containsEntity(asClass(arg0)) ||
-				reasoner.getEquivalentClasses(asClass(arg1)).contains(asClass(arg0));
+			return reasoner.isEntailed(factory.getOWLSubClassOfAxiom(asClass(arg0), asClass(arg1)));
 		case STRICT_SUB_CLASS_OF:
 			arg0 = args.get(0);
 			arg1 = args.get(1);
