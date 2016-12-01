@@ -15,6 +15,8 @@ import de.derivo.sparqldlapi.types.QueryArgumentType;
 import jpaul.DataStructs.UnionFind;
 
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 
 import de.derivo.sparqldlapi.Query;
@@ -1877,10 +1879,10 @@ public class QueryEngineImpl extends QueryEngine
 			OWLNamedIndividual ind = asIndividual(arg0);
 			OWLClass cls = asClass(arg1);
 			OWLClassAssertionAxiom ax = factory.getOWLClassAssertionAxiom(cls, ind);
-			if(reasoner.getRootOntology().containsAxiom(ax, true)) {
+			if(reasoner.getRootOntology().containsAxiom(ax, Imports.INCLUDED, AxiomAnnotations.CONSIDER_AXIOM_ANNOTATIONS)) {
 				return true;
 			}
-			return reasoner.getTypes(ind, false).containsEntity(cls);
+			return reasoner.isEntailed(factory.getOWLClassAssertionAxiom(cls, ind));
 		}
 		case DIRECT_TYPE:
 			arg0 = args.get(0);
