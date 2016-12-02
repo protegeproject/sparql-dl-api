@@ -1924,7 +1924,15 @@ public class QueryEngineImpl extends QueryEngine
 		case SUB_CLASS_OF:
 			arg0 = args.get(0);
 			arg1 = args.get(1);
-			return reasoner.isEntailed(factory.getOWLSubClassOfAxiom(asClass(arg0), asClass(arg1)));
+			OWLClass subCls = asClass(arg0);
+			if(subCls.isOWLNothing()) {
+				return true;
+			}
+			OWLClass superCls = asClass(arg1);
+			if(superCls.isOWLThing()) {
+				return true;
+			}
+			return reasoner.isEntailed(factory.getOWLSubClassOfAxiom(subCls, superCls));
 		case STRICT_SUB_CLASS_OF:
 			arg0 = args.get(0);
 			arg1 = args.get(1);
