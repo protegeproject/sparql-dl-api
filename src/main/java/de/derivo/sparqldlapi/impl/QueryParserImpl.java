@@ -513,7 +513,14 @@ public class QueryParserImpl implements QueryParser
 	
 	private void appendLiteral(String s) 
 	{
-		OWLLiteral literal = df.getOWLLiteral(s, df.getRDFPlainLiteral());
+		String strippedString;
+		if(s.startsWith("\"") && s.endsWith("\"")) {
+			strippedString = s.substring(1, s.length() - 1);
+		}
+		else {
+			strippedString = s;
+		}
+		OWLLiteral literal = df.getOWLLiteral(strippedString, df.getRDFPlainLiteral());
 		currentArgs.add(QueryArgument.newLiteral(literal));
 	}
 	
