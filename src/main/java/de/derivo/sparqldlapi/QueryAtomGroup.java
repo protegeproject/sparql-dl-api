@@ -15,28 +15,24 @@ public interface QueryAtomGroup
 {
 	/**
 	 * Check whether there are any atoms in the group.
-	 * 
 	 * @return True if there are no atoms at all.
 	 */
-	public boolean isEmpty();
+	boolean isEmpty();
 	
 	/**
 	 * Get an unodifiable list of all query atoms in the group.
-	 * 
-	 * @return
 	 */
-	public List<QueryAtom> getAtoms();
+	List<QueryAtom> getAtoms();
 	
 	/**
-	 * Print the group as string.
-	 * 
+	 * Print the group as string.*
 	 * @return a string
 	 */
-	public String toString();
+	String toString();
 	
 	@Override
-	public boolean equals(Object obj);
+	boolean equals(Object obj);
 	
 	@Override
-	public int hashCode();
+	int hashCode();
 }
