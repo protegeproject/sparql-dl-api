@@ -1416,11 +1416,11 @@ public class QueryEngineImpl extends QueryEngine {
                 if (valueMatched) {
                     // Given property and value
                     for (OWLAnnotationAssertionAxiom ax : unannotatedAxioms) {
-                        if (ax.getProperty().equals(propertyArg.getValueAsIRI())) {
+                        if (ax.getProperty().getIRI().equals(propertyArg.getValueAsIRI())) {
                             QueryBindingImpl new_binding = binding.clone();
                             OWLAnnotationValue value = getBoundAnnotationValue(valueArg);
                             if (ax.getValue().equals(value)) {
-                                // Any subject
+                                // Any subject match
                                 bindAnnotationSubject(ax, subjectArg, new_binding);
                                 eval(query, group.bind(new_binding), result, new_binding, BoundChecking.DO_NOT_CHECK_BOUND);
                                 ret = true;
