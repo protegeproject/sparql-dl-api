@@ -1379,10 +1379,6 @@ public class QueryEngineImpl extends QueryEngine {
                         }
                     }
                 }
-                else {
-                    System.out.println("Matched everything.... is it right?");
-                    ret = eval(query, group.pop(), result, binding, BoundChecking.CHECK_BOUND);
-                }
             }
             else {
                 if (valueMatched) {
