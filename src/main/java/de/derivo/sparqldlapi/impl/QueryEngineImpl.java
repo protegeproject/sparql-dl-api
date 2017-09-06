@@ -47,15 +47,13 @@ public class QueryEngineImpl extends QueryEngine {
 
     private boolean strictMode;
 
-    private boolean performArgumentChecking = false;
+    private boolean performArgumentChecking = true;
 
     private Set<OWLAnnotationProperty> cachedAnnotationProperties = new HashSet<>();
 
     private Set<OWLAnnotationAssertionAxiom> unannotatedAxioms = new HashSet<>();
 
     private Multimap<IRI, OWLAnnotationAssertionAxiom> annotationAssertionsBySubject = ArrayListMultimap.create();
-
-    private Set<QueryAtom> completeBindings = new HashSet<>();
 
     private ImmutableSet<IRI> classIris;
 
@@ -99,6 +97,9 @@ public class QueryEngineImpl extends QueryEngine {
         this.strictMode = strict;
     }
 
+    /**
+     * If the client is sure that the query is well formed then args checking can be disabled.
+     */
     public void setPerformArgumentChecking(boolean performArgumentChecking) {
         this.performArgumentChecking = performArgumentChecking;
     }
@@ -113,6 +114,7 @@ public class QueryEngineImpl extends QueryEngine {
             throw new QueryEngineException("Couldn't cast Query to QueryImpl.");
         }
         QueryImpl q = (QueryImpl) query;
+
 
         // search for unbound results vars
         resvarsLoop:
@@ -363,8 +365,17 @@ public class QueryEngineImpl extends QueryEngine {
         }
 
         if (atom.isBound()) {
-            // If the binding is entailed by the ontology then pop the atom and move on to the next one
-            return (checkBound == BoundChecking.DO_NOT_CHECK_BOUND || checkBound(atom)) && eval(query, group.pop(), result, binding, BoundChecking.CHECK_BOUND);
+            if (checkBound(atom)) {
+                // If the binding is entailed by the ontology then pop the atom and move on to the next one
+                if (eval(query,
+                         group.pop(),
+                         result,
+                         binding,
+                         checkBound)) {
+                    return true;
+                }
+            }
+            return false;
         }
         switch (atom.getType()) {
             case CLASS:
@@ -1213,15 +1224,15 @@ public class QueryEngineImpl extends QueryEngine {
         QueryArgument clsArg1 = arguments.get(1);
         if (clsArg0.isVar() && clsArg1.isVar()) {
             Set<OWLClass> candidates = getClasses();
-            ret = bindAndEvalClassCandidates(query, group, result, binding, clsArg0, candidates, BoundChecking.CHECK_BOUND);
+            ret = bindAndEvalClassCandidates(query, group, result, binding, clsArg0, candidates, BoundChecking.DO_NOT_CHECK_BOUND);
         }
         else if (clsArg0.isVar()) {
             Set<OWLClass> candidates = reasoner.getEquivalentClasses(asClass(clsArg1)).getEntities();
-            ret = bindAndEvalClassCandidates(query, group, result, binding, clsArg0, candidates, BoundChecking.CHECK_BOUND);
+            ret = bindAndEvalClassCandidates(query, group, result, binding, clsArg0, candidates, BoundChecking.DO_NOT_CHECK_BOUND);
         }
         else if (clsArg1.isVar()) {
             Set<OWLClass> candidates = reasoner.getEquivalentClasses(asClass(clsArg0)).getEntities();
-            ret = bindAndEvalClassCandidates(query, group, result, binding, clsArg0, candidates, BoundChecking.CHECK_BOUND);
+            ret = bindAndEvalClassCandidates(query, group, result, binding, clsArg0, candidates, BoundChecking.DO_NOT_CHECK_BOUND);
         }
         return ret;
     }
@@ -1284,8 +1295,8 @@ public class QueryEngineImpl extends QueryEngine {
             if (mode == SubClassOfMode.NON_STRICT && !superCls.isOWLThing()) {
                 candidates.addAll(reasoner.getEquivalentClasses(asClass(superClsArg)).getEntities());
             }
-            BoundChecking boundChecking = binding.isBound(subClsArg) ? BoundChecking.CHECK_BOUND : BoundChecking.CHECK_BOUND;
-            if(bindAndEvalClassCandidates(query, group, result, binding, subClsArg, candidates, boundChecking)) {
+            // Standard reasoning task, so we don't need to check the bound again
+            if(bindAndEvalClassCandidates(query, group, result, binding, subClsArg, candidates, BoundChecking.DO_NOT_CHECK_BOUND)) {
                 ret = true;
             }
         }
@@ -1341,11 +1352,11 @@ public class QueryEngineImpl extends QueryEngine {
         return bindAndEvalClassCandidates(query, group, result, binding, clsArg, candidates, BoundChecking.DO_NOT_CHECK_BOUND);
     }
 
-    private boolean evalAnnotationAssertion(QueryImpl query,
-                                            QueryAtomGroupImpl group,
-                                            QueryResultImpl result,
-                                            QueryBindingImpl binding,
-                                            QueryAtom atom) {
+    private boolean evalAnnotationAssertion(@Nonnull QueryImpl query,
+                                            @Nonnull QueryAtomGroupImpl group,
+                                            @Nonnull QueryResultImpl result,
+                                            @Nonnull QueryBindingImpl binding,
+                                            @Nonnull QueryAtom atom) {
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument subjectArg = arguments.get(0);
         QueryArgument propertyArg = arguments.get(1);
@@ -1363,10 +1374,14 @@ public class QueryEngineImpl extends QueryEngine {
                         if (isBoundToAnnotationAssertionProperty(propertyArg, ax)) {
                             QueryBindingImpl new_binding = binding.clone();
                             bindAnnotationAssertionValue(valueArg, ax, new_binding);
-                            eval(query, group.pop(), result, new_binding, BoundChecking.CHECK_BOUND);
+                            eval(query, group.bind(new_binding), result, new_binding, BoundChecking.DO_NOT_CHECK_BOUND);
                             ret = true;
                         }
                     }
+                }
+                else {
+                    System.out.println("Matched everything.... is it right?");
+                    ret = eval(query, group.pop(), result, binding, BoundChecking.CHECK_BOUND);
                 }
             }
             else {
@@ -1379,7 +1394,7 @@ public class QueryEngineImpl extends QueryEngine {
                         if (ax.getValue().equals(value)) {
                             QueryBindingImpl new_binding = binding.clone();
                             bindAnnotationProperty(ax, propertyArg, new_binding);
-                            eval(query, group.pop(), result, new_binding, BoundChecking.CHECK_BOUND);
+                            eval(query, group.bind(new_binding), result, new_binding, BoundChecking.DO_NOT_CHECK_BOUND);
                             ret = true;
                         }
                     }
@@ -1390,7 +1405,7 @@ public class QueryEngineImpl extends QueryEngine {
                         QueryBindingImpl new_binding = binding.clone();
                         bindAnnotationProperty(ax, propertyArg, new_binding);
                         bindAnnotationValue(ax, valueArg, new_binding);
-                        eval(query, group.pop(), result, new_binding, BoundChecking.CHECK_BOUND);
+                        eval(query, group.bind(new_binding), result, new_binding, BoundChecking.DO_NOT_CHECK_BOUND);
                         ret = true;
                     }
                 }
@@ -1407,7 +1422,7 @@ public class QueryEngineImpl extends QueryEngine {
                             if (ax.getValue().equals(value)) {
                                 // Any subject
                                 bindAnnotationSubject(ax, subjectArg, new_binding);
-                                eval(query, group.pop(), result, new_binding, BoundChecking.CHECK_BOUND);
+                                eval(query, group.bind(new_binding), result, new_binding, BoundChecking.DO_NOT_CHECK_BOUND);
                                 ret = true;
                             }
                         }
@@ -1421,7 +1436,7 @@ public class QueryEngineImpl extends QueryEngine {
                             QueryBindingImpl new_binding = binding.clone();
                             bindAnnotationSubject(ax, subjectArg, new_binding);
                             bindAnnotationAssertionValue(valueArg, ax, new_binding);
-                            eval(query, group.pop(), result, new_binding, BoundChecking.CHECK_BOUND);
+                            eval(query, group.bind(new_binding), result, new_binding, BoundChecking.DO_NOT_CHECK_BOUND);
                             ret = true;
                         }
                     }
@@ -1429,14 +1444,14 @@ public class QueryEngineImpl extends QueryEngine {
             }
             else {
                 if (valueMatched) {
-                    // Given value
+                    // Annotation assertions with the specified value count
                     for (OWLAnnotationAssertionAxiom ax : unannotatedAxioms) {
                         QueryBindingImpl new_binding = binding.clone();
                         OWLAnnotationValue value = getBoundAnnotationValue(valueArg);
                         if (ax.getValue().equals(value)) {
                             bindAnnotationSubject(ax, subjectArg, new_binding);
                             bindAnnotationProperty(ax, propertyArg, new_binding);
-                            eval(query, group.pop(), result, new_binding, BoundChecking.CHECK_BOUND);
+                            eval(query, group.bind(new_binding), result, new_binding, BoundChecking.DO_NOT_CHECK_BOUND);
                             ret = true;
                         }
                     }
@@ -1448,7 +1463,7 @@ public class QueryEngineImpl extends QueryEngine {
                         bindAnnotationSubject(ax, subjectArg, new_binding);
                         bindAnnotationProperty(ax, propertyArg, new_binding);
                         bindAnnotationValue(ax, valueArg, new_binding);
-                        eval(query, group.pop(), result, new_binding, BoundChecking.CHECK_BOUND);
+                        eval(query, group.bind(new_binding), result, new_binding, BoundChecking.DO_NOT_CHECK_BOUND);
                         ret = true;
                     }
                 }
@@ -2285,53 +2300,54 @@ public class QueryEngineImpl extends QueryEngine {
                 else {
                     ax = factory.getOWLAnnotationAssertionAxiom(anProp, arg0.getValueAsIRI(), arg2.getValueAsLiteral());
                 }
-                if (unannotatedAxioms.contains(ax)) {
-                    return true;
-                }
-
-                if (isDeclaredIndividual(arg0)) {
-                    anEntity = asIndividual(arg0);
-                }
-                else if (isDeclaredDataProperty(arg0)) {
-                    anEntity = asDataProperty(arg0);
-                }
-                else if (isDeclaredObjectProperty(arg0)) {
-                    anEntity = asObjectProperty(arg0);
-                }
-                else if (isDeclaredClass(arg0)) {
-                    anEntity = asClass(arg0);
-                }
-
-                if (anEntity == null) {
-                    return false;
-                }
-
-                Set<OWLAnnotation> annotations = new HashSet<>();
-                for (OWLOntology o : getImportsClosure()) {
-                    annotations.addAll(EntitySearcher.getAnnotations(anEntity, o, anProp));
-                }
-
-                if (arg2.isURI()) {
-                    for (OWLAnnotation a : annotations) {
-                        if (a.getValue() instanceof IRI) {
-                            IRI i = (IRI) a.getValue();
-                            if (i.equals(arg2.getValueAsIRI())) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-                else if (arg2.isLiteral()) {
-                    for (OWLAnnotation a : annotations) {
-                        if (a.getValue() instanceof OWLLiteral) {
-                            OWLLiteral l = (OWLLiteral) a.getValue();
-                            if (l.equals(arg2.getValueAsLiteral())) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-                return false;
+                return  unannotatedAxioms.contains(ax);
+//                if (unannotatedAxioms.contains(ax)) {
+//                    return true;
+//                }
+//
+//                if (isDeclaredIndividual(arg0)) {
+//                    anEntity = asIndividual(arg0);
+//                }
+//                else if (isDeclaredDataProperty(arg0)) {
+//                    anEntity = asDataProperty(arg0);
+//                }
+//                else if (isDeclaredObjectProperty(arg0)) {
+//                    anEntity = asObjectProperty(arg0);
+//                }
+//                else if (isDeclaredClass(arg0)) {
+//                    anEntity = asClass(arg0);
+//                }
+//
+//                if (anEntity == null) {
+//                    return false;
+//                }
+//
+//                Set<OWLAnnotation> annotations = new HashSet<>();
+//                for (OWLOntology o : getImportsClosure()) {
+//                    annotations.addAll(EntitySearcher.getAnnotations(anEntity, o, anProp));
+//                }
+//
+//                if (arg2.isURI()) {
+//                    for (OWLAnnotation a : annotations) {
+//                        if (a.getValue() instanceof IRI) {
+//                            IRI i = (IRI) a.getValue();
+//                            if (i.equals(arg2.getValueAsIRI())) {
+//                                return true;
+//                            }
+//                        }
+//                    }
+//                }
+//                else if (arg2.isLiteral()) {
+//                    for (OWLAnnotation a : annotations) {
+//                        if (a.getValue() instanceof OWLLiteral) {
+//                            OWLLiteral l = (OWLLiteral) a.getValue();
+//                            if (l.equals(arg2.getValueAsLiteral())) {
+//                                return true;
+//                            }
+//                        }
+//                    }
+//                }
+//                return false;
             case CLASS:
                 return isDeclaredClass(args.get(0));
             case INDIVIDUAL:
