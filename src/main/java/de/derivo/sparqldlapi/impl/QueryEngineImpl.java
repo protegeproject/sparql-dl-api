@@ -59,6 +59,8 @@ public class QueryEngineImpl extends QueryEngine {
 
     private ImmutableSet<OWLClass> classes;
 
+    private ImmutableSet<IRI> annotationPropertyIris;
+
     public QueryEngineImpl(OWLOntologyManager manager, OWLReasoner reasoner) {
         this(manager, reasoner, false);
     }
@@ -89,6 +91,9 @@ public class QueryEngineImpl extends QueryEngine {
         classesInSignature.add(factory.getOWLNothing());
         classes = ImmutableSet.copyOf(classesInSignature);
         classIris = ImmutableSet.copyOf(classes.stream().map(OWLClass::getIRI).collect(toSet()));
+
+        annotationPropertyIris = ImmutableSet.copyOf(reasoner.getRootOntology().getAnnotationPropertiesInSignature(Imports.INCLUDED).stream().map(
+                OWLNamedObject::getIRI).collect(toSet()));
         long t1 = System.currentTimeMillis();
         System.out.println("Built indexes in " + (t1 - t0) + " ms");
     }
@@ -2498,7 +2503,7 @@ public class QueryEngineImpl extends QueryEngine {
     }
 
     private boolean isDeclaredAnnotationProperty(QueryArgument arg) {
-        return isDeclared(asAnnotationProperty(arg));
+        return annotationPropertyIris.contains(arg.getValueAsIRI());
     }
 
     private boolean isDeclaredDatatype(QueryArgument arg) {
