@@ -77,7 +77,6 @@ public class QueryEngineImpl extends QueryEngine {
         this.reasoner = reasoner;
         this.factory = manager.getOWLDataFactory();
         this.strictMode = strictMode;
-        long t0 = System.currentTimeMillis();
         reasoner.getRootOntology()
                 .getAxioms(AxiomType.ANNOTATION_ASSERTION, Imports.INCLUDED)
                 .stream()
@@ -94,8 +93,6 @@ public class QueryEngineImpl extends QueryEngine {
 
         annotationPropertyIris = ImmutableSet.copyOf(reasoner.getRootOntology().getAnnotationPropertiesInSignature(Imports.INCLUDED).stream().map(
                 OWLNamedObject::getIRI).collect(toSet()));
-        long t1 = System.currentTimeMillis();
-        System.out.println("Built indexes in " + (t1 - t0) + " ms");
     }
 
     public void setStrictMode(boolean strict) {
@@ -347,7 +344,7 @@ public class QueryEngineImpl extends QueryEngine {
                          QueryAtomGroupImpl group,
                          QueryResultImpl result,
                          QueryBindingImpl binding,
-                         BoundChecking checkBound) {
+                         BoundChecking checkBound) throws QueryEngineException {
         // Check for termination.  If all the atoms have been processed in this group then we are done.
         if (group.isEmpty()) {
             if (query.isSelect() || query.isSelectDistinct()) {
@@ -363,7 +360,7 @@ public class QueryEngineImpl extends QueryEngine {
             } catch (QueryEngineException e) {
                 // if strict mode is enabled we will throw an exception here
                 if (strictMode) {
-                    throw new RuntimeException(e);
+                    throw e;
                 }
                 return false;
             }
@@ -451,7 +448,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalInverseFunctional(QueryImpl query,
                                           QueryAtomGroupImpl group,
                                           QueryResultImpl result,
-                                          QueryBindingImpl binding, QueryAtom atom) {
+                                          QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propArg = arguments.get(0);
@@ -473,7 +470,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalEquivalentProperty(QueryImpl query,
                                            QueryAtomGroupImpl group,
                                            QueryResultImpl result,
-                                           QueryBindingImpl binding, QueryAtom atom) {
+                                           QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument prop0Arg = arguments.get(0);
@@ -535,7 +532,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalDirectSubPropertyOf(QueryImpl query,
                                             QueryAtomGroupImpl group,
                                             QueryResultImpl result,
-                                            QueryBindingImpl binding, QueryAtom atom) {
+                                            QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument subPropArg = arguments.get(0);
@@ -591,7 +588,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalSubPropertyOf(QueryImpl query,
                                       QueryAtomGroupImpl group,
                                       QueryResultImpl result,
-                                      QueryBindingImpl binding, QueryAtom atom, boolean strict) {
+                                      QueryBindingImpl binding, QueryAtom atom, boolean strict) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument subPropArg = arguments.get(0);
@@ -660,7 +657,7 @@ public class QueryEngineImpl extends QueryEngine {
                                                         QueryResultImpl result,
                                                         QueryBindingImpl binding,
                                                         QueryArgument subPropArg,
-                                                        Set<? extends OWLObjectPropertyExpression> candidates) {
+                                                        Set<? extends OWLObjectPropertyExpression> candidates) throws QueryEngineException {
         boolean ret = false;
         for (OWLObjectPropertyExpression propExp : candidates) {
             if (!propExp.isAnonymous()) {
@@ -677,7 +674,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalSymmetric(QueryImpl query,
                                   QueryAtomGroupImpl group,
                                   QueryResultImpl result,
-                                  QueryBindingImpl binding, QueryAtom atom) {
+                                  QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propArg = arguments.get(0);
@@ -699,7 +696,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalTransitive(QueryImpl query,
                                    QueryAtomGroupImpl group,
                                    QueryResultImpl result,
-                                   QueryBindingImpl binding, QueryAtom atom) {
+                                   QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propArg = arguments.get(0);
@@ -721,7 +718,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalIrreflexive(QueryImpl query,
                                     QueryAtomGroupImpl group,
                                     QueryResultImpl result,
-                                    QueryBindingImpl binding, QueryAtom atom) {
+                                    QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propArg = arguments.get(0);
@@ -743,7 +740,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalReflexive(QueryImpl query,
                                   QueryAtomGroupImpl group,
                                   QueryResultImpl result,
-                                  QueryBindingImpl binding, QueryAtom atom) {
+                                  QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propArg = arguments.get(0);
@@ -765,7 +762,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalFunctional(QueryImpl query,
                                    QueryAtomGroupImpl group,
                                    QueryResultImpl result,
-                                   QueryBindingImpl binding, QueryAtom atom) {
+                                   QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propArg = arguments.get(0);
@@ -798,7 +795,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalAnnotationProperty(QueryImpl query,
                                            QueryAtomGroupImpl group,
                                            QueryResultImpl result,
-                                           QueryBindingImpl binding, QueryAtom atom) {
+                                           QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propArg = arguments.get(0);
@@ -818,7 +815,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalDataProperty(QueryImpl query,
                                      QueryAtomGroupImpl group,
                                      QueryResultImpl result,
-                                     QueryBindingImpl binding, QueryAtom atom) {
+                                     QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propArg = arguments.get(0);
@@ -834,7 +831,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalProperty(QueryImpl query,
                                  QueryAtomGroupImpl group,
                                  QueryResultImpl result,
-                                 QueryBindingImpl binding, QueryAtom atom) {
+                                 QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propArg = arguments.get(0);
@@ -854,7 +851,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalPropertyValue(QueryImpl query,
                                       QueryAtomGroupImpl group,
                                       QueryResultImpl result,
-                                      QueryBindingImpl binding, QueryAtom atom) {
+                                      QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument subjectArg = arguments.get(0);
@@ -912,7 +909,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalObjectProperty(QueryImpl query,
                                        QueryAtomGroupImpl group,
                                        QueryResultImpl result,
-                                       QueryBindingImpl binding, QueryAtom atom) {
+                                       QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         QueryArgument propArg = atom.getArguments().get(0);
         if (propArg.isVar()) {
@@ -926,7 +923,7 @@ public class QueryEngineImpl extends QueryEngine {
                                              QueryAtomGroupImpl group,
                                              QueryResultImpl result,
                                              QueryBindingImpl binding,
-                                             QueryAtom atom) {
+                                             QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument ind0Arg = arguments.get(0);
@@ -954,7 +951,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalSameAs(QueryImpl query,
                                QueryAtomGroupImpl group,
                                QueryResultImpl result,
-                               QueryBindingImpl binding, QueryAtom atom) {
+                               QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         QueryArgument ind0Arg = atom.getArguments().get(0);
         QueryArgument ind1Arg = atom.getArguments().get(1);
@@ -979,7 +976,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalType(QueryImpl query,
                              QueryAtomGroupImpl group,
                              QueryResultImpl result,
-                             QueryBindingImpl binding, QueryAtom atom, boolean strict) {
+                             QueryBindingImpl binding, QueryAtom atom, boolean strict) throws QueryEngineException {
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument indArg = arguments.get(0);
         QueryArgument typeArg = arguments.get(1);
@@ -1007,7 +1004,7 @@ public class QueryEngineImpl extends QueryEngine {
                                                          QueryBindingImpl binding,
                                                          QueryArgument indArg,
                                                          Set<OWLNamedIndividual> candidates,
-                                                         BoundChecking checkBound) {
+                                                         BoundChecking checkBound) throws QueryEngineException {
         boolean ret = false;
         for (OWLNamedIndividual c : candidates) {
             final QueryBindingImpl new_binding = binding.clone();
@@ -1022,7 +1019,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalDisjointWith(QueryImpl query,
                                      QueryAtomGroupImpl group,
                                      QueryResultImpl result,
-                                     QueryBindingImpl binding, QueryAtom atom) {
+                                     QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         QueryArgument cls0Arg = atom.getArguments().get(0);
         QueryArgument cls1Arg = atom.getArguments().get(1);
@@ -1047,7 +1044,7 @@ public class QueryEngineImpl extends QueryEngine {
                                                QueryBindingImpl binding,
                                                QueryArgument clsArg,
                                                Collection<OWLClass> candidates,
-                                               BoundChecking checkBound) {
+                                               BoundChecking checkBound) throws QueryEngineException {
         boolean ret = false;
         for (OWLClass c : candidates) {
             final QueryBindingImpl new_binding = binding.clone();
@@ -1062,7 +1059,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalComplementOf(QueryImpl query,
                                      QueryAtomGroupImpl group,
                                      QueryResultImpl result,
-                                     QueryBindingImpl binding, QueryAtom atom) {
+                                     QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument arg0 = arguments.get(0);
@@ -1087,7 +1084,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalRange(QueryImpl query,
                               QueryAtomGroupImpl group,
                               QueryResultImpl result,
-                              QueryBindingImpl binding, QueryAtom atom) {
+                              QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propArg = arguments.get(0);
@@ -1140,7 +1137,7 @@ public class QueryEngineImpl extends QueryEngine {
                                                             QueryAtomGroupImpl group,
                                                             QueryResultImpl result,
                                                             QueryBindingImpl binding,
-                                                            QueryArgument propArg) {
+                                                            QueryArgument propArg) throws QueryEngineException {
         boolean ret = false;
         for (OWLAnnotationProperty property : getAnnotationProperties()) {
             final QueryBindingImpl new_binding = binding.clone();
@@ -1155,7 +1152,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalDomain(QueryImpl query,
                                QueryAtomGroupImpl group,
                                QueryResultImpl result,
-                               QueryBindingImpl binding, QueryAtom atom) {
+                               QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument propertyArg = arguments.get(0);
@@ -1207,7 +1204,7 @@ public class QueryEngineImpl extends QueryEngine {
                                                       QueryResultImpl result,
                                                       QueryBindingImpl binding,
                                                       QueryArgument propertyArg,
-                                                      Set<OWLDataProperty> candidates) {
+                                                      Set<OWLDataProperty> candidates) throws QueryEngineException {
         boolean ret = false;
         for (OWLDataProperty property : candidates) {
             final QueryBindingImpl new_binding = binding.clone();
@@ -1222,7 +1219,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalEquivalentClasses(QueryImpl query,
                                           QueryAtomGroupImpl group,
                                           QueryResultImpl result,
-                                          QueryBindingImpl binding, QueryAtom atom) {
+                                          QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument clsArg0 = arguments.get(0);
@@ -1237,7 +1234,7 @@ public class QueryEngineImpl extends QueryEngine {
         }
         else if (clsArg1.isVar()) {
             Set<OWLClass> candidates = reasoner.getEquivalentClasses(asClass(clsArg0)).getEntities();
-            ret = bindAndEvalClassCandidates(query, group, result, binding, clsArg0, candidates, BoundChecking.DO_NOT_CHECK_BOUND);
+            ret = bindAndEvalClassCandidates(query, group, result, binding, clsArg1, candidates, BoundChecking.DO_NOT_CHECK_BOUND);
         }
         return ret;
     }
@@ -1245,7 +1242,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalDirectSubClassOf(QueryImpl query,
                                          QueryAtomGroupImpl group,
                                          QueryResultImpl result,
-                                         QueryBindingImpl binding, QueryAtom atom) {
+                                         QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument subClsArg = arguments.get(0);
@@ -1276,7 +1273,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalSubClassOf(QueryImpl query,
                                    QueryAtomGroupImpl group,
                                    QueryResultImpl result,
-                                   QueryBindingImpl binding, QueryAtom atom, SubClassOfMode mode) {
+                                   QueryBindingImpl binding, QueryAtom atom, SubClassOfMode mode) throws QueryEngineException {
         boolean ret = false;
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument subClsArg = arguments.get(0);
@@ -1329,7 +1326,7 @@ public class QueryEngineImpl extends QueryEngine {
                                    QueryAtomGroupImpl group,
                                    QueryResultImpl result,
                                    QueryBindingImpl binding,
-                                   QueryAtom atom) {
+                                   QueryAtom atom) throws QueryEngineException {
         QueryArgument indArg = atom.getArguments().get(0);
         if (!indArg.isVar()) {
             return false;
@@ -1346,7 +1343,7 @@ public class QueryEngineImpl extends QueryEngine {
     private boolean evalClass(QueryImpl query,
                               QueryAtomGroupImpl group,
                               QueryResultImpl result,
-                              QueryBindingImpl binding, QueryAtom atom) {
+                              QueryBindingImpl binding, QueryAtom atom) throws QueryEngineException {
         QueryArgument clsArg = atom.getArguments().get(0);
         if (!clsArg.isVar()) {
             return false;
@@ -1361,7 +1358,7 @@ public class QueryEngineImpl extends QueryEngine {
                                             @Nonnull QueryAtomGroupImpl group,
                                             @Nonnull QueryResultImpl result,
                                             @Nonnull QueryBindingImpl binding,
-                                            @Nonnull QueryAtom atom) {
+                                            @Nonnull QueryAtom atom) throws QueryEngineException {
         List<QueryArgument> arguments = atom.getArguments();
         QueryArgument subjectArg = arguments.get(0);
         QueryArgument propertyArg = arguments.get(1);
