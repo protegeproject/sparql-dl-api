@@ -331,6 +331,8 @@ public class QueryParserImpl implements QueryParser
 		case EQUIVALENT_PROPERTY:
 		case SUB_PROPERTY_OF:
 		case INVERSE_OF:
+                case DOMAIN:
+                case RANGE:    
 		case STRICT_SUB_CLASS_OF:
 		case DIRECT_SUB_CLASS_OF:
 		case STRICT_SUB_PROPERTY_OF:
